@@ -1,0 +1,315 @@
+## GAME DESIGN DOCUMENT
+## Meta Connect &amp; Convert
+Interactive Marketing Quiz Game
+Event: August 18, 2026
+Location: Pavilion Arena, Damansara Heights
+## EXECUTIVE SUMMARY
+Meta Connect &amp; Convert is an interactive, time-based quiz game that educates players about Meta's marketing solutions while delivering an engaging competitive experience. The game runs on multiple vertical touchscreen panels placed around the event venue, all connected to a lightweight API backend for data syncing and retrieval. Players answer a series of multiple-choice questions - each with a 30-second countdown - and their per-question scores are summed into a final score that is stored centrally and displayed on a shared, real-time leaderboard. All game content and rules (number of questions, the questions and answer choices themselves, points per question, and score display behaviour) are fully configurable by the event owner through a settings console, with no code changes required.
+## 1. GAME OVERVIEW
+## Game Concept
+A fast-paced quiz game where players diagnose marketing problems and prescribe Meta solutions. Each question presents a business challenge, and players must identify the correct "A+ Strategy" from the answer choices within 30 seconds. The number of questions per game is set by the event owner, and questions are drawn at random from a configurable question pool so no two games feel the same.
+## Target Audience
+Meta marketing professionals, e-commerce businesses, digital marketers, and attendees at Meta Connect 2026 events.
+## Objectives
+• Educate players about Meta's marketing solutions (Placement, Audience, Creative, Shopping, Budget optimization)
+• Create competitive engagement and social sharing
+• Generate qualified leads through gameplay data
+• Build brand affinity with Meta's marketing ecosystem
+• Give the event owner full control of questions, scoring, and game length without developer involvement
+## 2. CORE GAME MECHANICS
+## Game Flow
+Entry → Name Registration → Question Rounds (configurable count, 30 seconds each) → Final Score Summary → Leaderboard → Social Share
+## Question Structure
+Element
+Description
+Question
+A real marketing challenge (e.g., "My CPM is too high" or "I'm not reaching new customers") drawn at random from the event owner's question pool
+Time Limit
+30-second countdown per question; auto-advance on answer or timeout
+Answer Choices
+Multiple-choice options defined by the event owner for each question (e.g., A+ Placement, Audience, Creative, Shopping, Budget); exactly one is marked correct
+Scoring
+Each question carries its own configurable point value; correct answers earn the question's points (with a speed bonus tier), wrong answers or timeouts earn 0
+Score Feedback
+Points earned are shown after each question; this per-question score display can be turned off in settings
+## A+ Strategies (Solution Categories)
+1. A+ Placement - Optimize where ads appear (platforms, placements, formats)
+2. A+ Audience - Refine targeting and reach the right people
+3. A+ Creative - Improve ad creative quality and relevance
+4. A+ Shopping - Leverage catalog and shopping features
+5. A+ Budget - Optimize budget allocation and bidding
+## 3. QUESTION ROUNDS &amp; SCORING
+## Question Rounds
+• Each game presents N questions, where N is set by the event owner in settings (default: 5)
+• Every question has its own 30-second countdown; answering or timing out advances to the next question
+• At game start, the panel retrieves the active question pool from the backend and randomly selects N questions - the pool can hold more questions than needed (e.g., 10 configured, 5 used per game), so successive games get different question sets
+• Answer choice order is shuffled on every question to discourage memorised answers
+## Scoring System
+• Each question has a base point value configured by the event owner (default: 100 points)
+• Correct answer within 0-20 seconds: full base points
+• Correct answer within 20-30 seconds: 75% of base points
+• Wrong answer or time expiry: 0 points
+• Perfect speedrun (all questions answered correctly in under 20s): +50 bonus points (configurable)
+• Speed bonus is a global on/off setting - when turned off, any correct answer earns the question's full base points regardless of answer time
+• Final score = sum of points earned across all questions (+ any bonus); the final score is submitted to the backend, stored, and ranked on the leaderboard
+## Per-Question Score Display
+After each question, the points earned are displayed alongside the correct/wrong feedback animation. The event owner can disable this in settings, in which case players see only right/wrong feedback during play and their total score is revealed at the end of the game.
+## 4. EVENT OWNER SETTINGS (CONFIGURATION CONSOLE)
+A separate, browser-based settings console (served by the API backend and protected by admin login) lets the event owner configure the entire game without code changes. Configuration is stored centrally; every touchscreen panel pulls the latest settings and question pool from the backend at the start of each game, so changes propagate to all panels automatically.
+## Configurable Settings
+Setting
+Description
+Default
+Questions per Game
+Number of questions each player answers in one game
+5
+Question Pool
+Create, edit, and delete questions; the pool may contain more questions than are used per game
+10 questions
+Answer Choices
+Per question: 2-10 answer choices with exactly one marked as correct
+4 choices
+Points per Question
+Base point value awarded for a correct answer, set individually per question
+100 points
+Speed Bonus (On/Off)
+When on: full points within 20s, 75% within 30s, plus a perfect-speedrun bonus; when off: correct answers always earn full base points
+On / +50
+Per-Question Score Display
+Show or hide the points earned after each question
+On
+Randomization
+Random draw of the required questions from the pool and shuffling of answer order
+On
+## Question Pool &amp; Randomization
+• The event owner can configure more questions than a single game requires - for example, a pool of 10 questions when each game only uses 5
+• At the start of every game, the required number of questions is drawn at random from the active pool, and the answer choices within each question are shuffled
+• This keeps repeat plays fresh, reduces answer-sharing between players queuing at adjacent panels, and lets the owner rotate content during the event
+• Validation: the console warns if the pool contains fewer questions than the configured questions-per-game value
+## 5. VISUAL DESIGN &amp; STYLE
+## Design Philosophy
+Playful, modern, and friendly - inspired by Meta's Meta Connect event branding. The design should feel engaging and approachable while maintaining professionalism.
+## Color Palette
+Color
+Hex Code
+Usage
+Meta Blue
+#0063F7
+Primary color for buttons, headers, accents
+Bright Green
+#31A24C
+Positive feedback, correct answers
+Coral/Orange
+#FF6B35
+Accent color, call-to-action elements
+Light Pink
+#FFB8D1
+Secondary accent, decorative elements
+White
+#FFFFFF
+Background, card surfaces
+Light Gray
+#F0F0F0
+Secondary backgrounds
+## Typography
+• Headlines: Bold, 32pt, Meta Blue (#0063F7)
+• Subheadings: Semi-bold, 24pt, Dark gray (#222222)
+• Body text: Regular, 16pt, Dark gray (#222222)
+• Buttons: Semi-bold, 18pt, white text on colored backgrounds
+## Visual Elements
+• Cute emoji-like characters representing different marketing concepts
+• Dot patterns as background decorative elements
+• Rounded rectangles and soft corners for all UI elements
+• Card-based layout for answer choices
+• Animated transitions between questions
+## 6. SCREEN DESIGN
+All player-facing screens are designed portrait-first for vertical touchscreen panels (1080×1920).
+## Screen 1: Start/Entry Screen
+• Meta logo (top)
+• "Enter your name" input field (center)
+• Large "START" button (Meta Blue)
+• Decorative dot pattern and cute character illustrations in background
+## Screen 2: Question Screen
+• Question indicator ("Question 2 of 5" - reflects the configured question count) at top
+• Player name/company display (top area)
+• Business problem statement (center, bold 28pt)
+• Timer display (prominent 30-second countdown)
+• Grid of answer choice cards (2 columns, portrait-optimized), each showing the answer text and a small icon/emoji
+## Screen 3: Score Feedback (per question)
+• Correct/wrong feedback with the points earned for that question (e.g., "+100 points")
+• Running total score
+• Hidden when the per-question score display setting is turned off - players then see only correct/wrong feedback
+## Screen 4: Final Score &amp; Leaderboard
+• Player's final score (sum of all question scores) with celebratory animation
+• "Leaderboard" title with top 3 companies/players highlighted (1st, 2nd, 3rd)
+• Player's current rank and score
+• Leaderboard is synchronized in real time across all touchscreen panels via the API backend
+• "Share Your Score" button (for social sharing)
+• "Play Again" button (returns to entry screen)
+## Screen 5: Settings Console (event owner only)
+• Browser-based admin screen, not shown on the kiosk panels
+• Question pool manager (add/edit/delete questions, answer choices, correct answer, points)
+• Game settings (questions per game, score display toggle, speed bonus)
+• Live leaderboard view and reset controls
+## 7. UX/UI SPECIFICATIONS
+## Interactions &amp; Feedback
+Correct Answer: Green highlight, checkmark icon, points earned display (if enabled), celebratory animation
+Wrong Answer: Red flash, X icon, card shake animation, explanation popup
+Time Expiry: Cards fade, "Time's up!" message, 0 points, auto-advance to next question
+## Responsive Design
+• Primary: vertical touchscreen panel, 1080×1920 portrait full screen (event kiosk mode)
+• Desktop: 1920×1080 (settings console, leaderboard projection)
+• Tablet: 1024×768 or larger
+• Mobile: 375×667 (responsive card grid)
+## Accessibility
+• High contrast ratios for all text (WCAG AA compliant)
+• Screen reader support for question and answer descriptions
+• Keyboard navigation support
+• Text descriptions for color-coded feedback
+• Touch targets sized for standing kiosk use (minimum 48×48px)
+## 8. AUDIO &amp; FEEDBACK DESIGN
+## Sound Effects
+• Button click: Soft "tap" sound (200ms)
+• Correct answer: Celebratory "ding" (upward musical note progression)
+• Wrong answer: Sad "buzz" (descending tone)
+• Time warning: Beep every 5 seconds when &lt; 10 seconds remain
+• Time expired: Ascending three-note alert
+## Visual Feedback
+• Touch states: Card grows slightly, shadow increases
+• Selection: Card animates to center, larger
+• Timer: Color changes from blue → orange → red as time decreases
+• Points earned pop-up on correct answers (when per-question score display is on)
+• Particle effects on correct answers (confetti, stars)
+## 9. TECHNICAL ARCHITECTURE
+## System Overview
+The system consists of multiple vertical touchscreen panels (clients) connected to a simple API backend for data syncing and retrieval. Each panel runs the game as a React application packaged as a desktop executable (.exe) via Electron, launched fullscreen in kiosk mode. At the start of each game the panel fetches the current settings and question pool from the backend; on completion it submits the final score (with a per-question breakdown). All panels receive leaderboard updates from the backend so rankings stay in sync across the venue.
+## Tech Stack
+Layer
+Technology
+Notes
+Game Client (panels)
+React, packaged as a Windows .exe with Electron
+Fullscreen portrait kiosk app installed on each vertical touchscreen panel; auto-launch on boot
+Settings Console
+React (web)
+Admin-authenticated web app for the event owner, hosted on Vercel
+API Backend
+Vercel serverless functions (Node.js/TypeScript)
+REST endpoints for settings, questions, scores, and leaderboard
+Database
+Supabase (PostgreSQL)
+Stores question pool, game settings, and scores; Supabase Auth secures the settings console; Supabase Realtime can push live leaderboard updates to panels
+Environments
+Production + Development endpoints
+Separate Vercel deployment and Supabase project for development; panels and console select the API base URL via configuration
+## Environments &amp; Deployment
+• API deployed on Vercel; Supabase provides the database, auth, and realtime layer
+• A dedicated development endpoint (separate Vercel deployment + Supabase project) is available for development and testing without touching live event data
+• The game client reads its API base URL from a config file, so the same .exe build can be pointed at the development or production endpoint
+• Electron packaging via electron-builder produces a signed Windows .exe / installer for the panels
+## Platform Requirements
+• React game client packaged as a Windows executable (.exe) running fullscreen kiosk mode on each panel
+• Portrait orientation, optimized for vertical touchscreen panels
+• Settings console compatible with modern browsers (Chrome, Firefox, Safari, Edge)
+• Multiple panels operating concurrently against the shared backend
+• Offline tolerance: panels cache the last-synced question set and queue score submissions if connectivity drops briefly
+## API Backend
+Endpoint
+Method
+Purpose
+/api/settings
+GET
+Current game configuration (questions per game, score display toggle, bonus settings)
+/api/questions
+GET
+Active question pool (questions, answer choices, correct answer, points)
+/api/scores
+POST
+Submit a player's final score with per-question breakdown
+/api/leaderboard
+GET
+Ranked scores for real-time leaderboard display on all panels
+/api/admin/*
+CRUD
+Settings console: manage questions, settings, and leaderboard resets (authenticated)
+## Data Collection
+• Player name/company
+• Final score and rank
+• Per-question results: question shown, answer selected, time taken, points earned
+• Panel ID (which touchscreen the game was played on)
+• Gameplay session timestamp
+## 10. GAME BALANCE &amp; VARIABLES
+Variable
+Default
+Configurable by Event Owner
+Questions per Game
+5
+Yes
+Question Pool Size
+10
+Yes (must be ≥ questions per game)
+Time per Question
+30 seconds
+No (fixed)
+Points per Question (base)
+100 points
+Yes (per question)
+Speed Bonus
+On
+Yes (on/off toggle)
+Correct within 0-20s (bonus on)
+Full base points
+Follows speed bonus toggle
+Correct within 20-30s (bonus on)
+75% of base points
+Follows speed bonus toggle
+Correct answer (bonus off)
+Full base points
+Follows speed bonus toggle
+Wrong Answer / Timeout
+0 points
+No
+Perfect Speedrun Bonus (all correct &lt;20s)
++50 points
+Yes
+Per-Question Score Display
+On
+Yes
+Question &amp; Answer Randomization
+On
+Yes
+Max Score
+Sum of configured question points + bonus (e.g., 550 for 5 × 100 + 50)
+Derived
+## 11. QUESTION POOL DATABASE (SAMPLE CONTENT)
+The question pool is managed entirely by the event owner through the settings console. The samples below illustrate the content format; the launch pool should contain at least double the questions-per-game setting (e.g., 10 questions for a 5-question game) so randomization stays effective.
+## Sample Question 1: High CPM Problem
+Question: "I'm spending much time on creative &amp; My CPM is too high"
+Correct Answer: A+ Creative (optimize ad creative quality and relevance)
+Other Choices: A+ Placement, A+ Audience, A+ Budget (all thematically related)
+Points: 100
+## Sample Question 2: Reach &amp; Efficiency Problem
+Question: "I'm not reaching new customers &amp; My budget isn't distributed efficiently"
+Correct Answer: A+ Audience (refine targeting and expand reach)
+Other Choices: A+ Placement, A+ Budget, A+ Shopping (strategically similar)
+Points: 100
+## 12. EDUCATIONAL VALUE
+This game teaches players the five core pillars of Meta's marketing solutions:
+1. Placement Optimization: Understanding where ads perform best across Meta's ecosystem
+2. Audience Targeting: Using data to reach the right people with precision
+3. Creative Excellence: Producing high-quality, relevant ad creatives
+4. Shopping Integration: Leveraging catalog and e-commerce features
+5. Budget Management: Allocating budgets efficiently to maximize ROAS
+## 13. SOCIAL &amp; ENGAGEMENT FEATURES
+Share Score: Players can share their score and rank on social media
+Leaderboard: Real-time leaderboard stored in the backend and synchronized across all touchscreen panels and event screens
+Achievements: Badge system for perfect scores, speed runs, etc.
+Replay Incentive: Randomized question draws keep replays fresh and encourage players to improve their score and climb the leaderboard
+## 14. DEVELOPMENT TIMELINE (ESTIMATED)
+Week 1-2: Design &amp; Prototyping
+Week 3-4: Frontend Development (React setup, portrait kiosk UI components, Electron packaging)
+Week 5-6: Backend &amp; Settings Console (Vercel API, Supabase schema, question pool CMS, scoring, leaderboard sync)
+Week 7-8: Integration &amp; Testing (multi-panel sync, randomization, settings propagation, .exe kiosk builds on target hardware)
+Week 9-10: QA, on-site kiosk testing, optimizations, and final deployment
+## CONCLUSION
+Meta Connect &amp; Convert combines entertainment with education, creating an engaging experience for marketing professionals at the event. Players answer a configurable series of timed questions, watch their scores add up, and compete on a live leaderboard synchronized across every touchscreen panel. Because the event owner controls the question pool, scoring, and game length through the settings console, the same platform can be refreshed mid-event or reused for future events without developer involvement.

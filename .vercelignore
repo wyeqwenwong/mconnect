@@ -1,0 +1,11 @@
+# Keep the Vercel deployment to the web app + its serverless API.
+# (api/ IS deployed — it's the Supabase-backed backend.)
+electron
+supabase
+design_handoff
+design-reference2
+dist
+release
+node_modules
+*.docx
+gdd_extracted.txt

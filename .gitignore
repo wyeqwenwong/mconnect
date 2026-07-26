@@ -1,0 +1,14 @@
+node_modules
+dist
+release
+tsconfig.tsbuildinfo
+.vercel
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# heavy design reference (not needed for deploy)
+design_handoff
+design-reference2

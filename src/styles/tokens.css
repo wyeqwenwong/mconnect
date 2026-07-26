@@ -1,0 +1,76 @@
+/* ============================================================
+   "Soft Studio" design tokens — from handoff README §4
+   ============================================================ */
+:root {
+  /* "Confetti Pop" palette (design_handoff §4) */
+  --meta-blue: #0064e0; /* titles, +score, dark bubbles, NEXT */
+  --meta-blue-dark: #0050c8;
+  --blue-light: #4a90f8; /* alt bubbles, dots */
+  --magenta: #ed2e7e; /* START, player chip, rank-1 */
+  --amber: #f5a623; /* TOTAL, rank-4, pacman */
+  --green: #5bd62b; /* correct ticks, rank-2 */
+  --purple: #8a2be2; /* rank-3 */
+  --pastel-pink: #f8a8ce; /* rank-5, blob */
+  --teal: #00c6b8; /* teal sticker */
+
+  /* Feedback (kept for shared components) */
+  --success: #5bd62b;
+  --error: #e0453a;
+  --coral: #ff6b35;
+  --pink: #f8c8dc;
+
+  /* Surfaces + ink */
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --ink: #222222;
+  --ink-2: #666666;
+  --muted: #9aa3af;
+  --dark-bar: #222222;
+
+  /* Tints + borders (admin) */
+  --blue-tint: #e6f0ff;
+  --coral-tint: #ffede5;
+  --checkbox-border: #d8dee7;
+  --hairline: rgba(0, 0, 0, 0.08);
+
+  /* Shape */
+  --r-surface: 48px;
+  --r-card: 36px;
+  --r-tile: 24px;
+  --r-pill: 999px;
+
+  --shadow-hero: 0 24px 70px rgba(0, 0, 0, 0.08);
+
+  --font: 'Figtree', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input {
+  font-family: inherit;
+}
+
+/* Kiosk apps run fullscreen with no scrollbars / no text selection. */
+.kiosk-no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
