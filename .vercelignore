@@ -1,5 +1,7 @@
-# Keep the Vercel deployment to the web app + its serverless API.
-# (api/ IS deployed — it's the Supabase-backed backend.)
+# The client talks to Supabase directly, so the serverless api/ folder is not
+# deployed. (To use the serverless variant instead, un-ignore api/, set the
+# SUPABASE_* runtime env vars, and point the client at it.)
+api
 electron
 supabase
 design_handoff

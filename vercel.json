@@ -6,7 +6,8 @@
   "build": {
     "env": {
       "ELECTRON_SKIP_BINARY_DOWNLOAD": "1",
-      "VITE_REMOTE": "1"
+      "VITE_SUPABASE_URL": "https://hjnabasctbhsnospnios.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqbmFiYXNjdGJoc25vc3BuaW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzY0NDEsImV4cCI6MjEwMDY1MjQ0MX0.Z4-qNPB19dotjkqrDIgNu9AAuShlxngtPhYRTOBuCDE"
     }
   }
 }

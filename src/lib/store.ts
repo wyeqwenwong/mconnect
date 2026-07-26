@@ -4,19 +4,19 @@
 //   • Local (default)  — localStorage + BroadcastChannel. Opening the game in
 //     several browser tabs simulates multiple kiosks sharing one leaderboard,
 //     with live cross-tab updates (stands in for Supabase Realtime).
-//   • Remote            — talks to the Vercel serverless API (backed by
-//     Supabase). Enabled when VITE_REMOTE=1 (same-origin /api, the deployed
-//     default) or when VITE_API_BASE points at another origin.
+//   • Remote            — talks directly to Supabase (Postgres + Realtime) from
+//     the browser with the public anon key. Enabled when VITE_SUPABASE_URL /
+//     VITE_SUPABASE_ANON_KEY are set (baked in at build time on Vercel).
 //
 // Settings + question pool are pulled fresh at the START OF EACH GAME, so admin
 // changes propagate to all panels on the next game (GDD §4).
 // ============================================================
 import { DEFAULT_SETTINGS, SEED_QUESTIONS } from './seed';
+import { supa } from './supabase';
 import type { GameSettings, LeaderboardRow, Question, Score } from './types';
 
-// '' = same-origin /api (the deployed default). REMOTE gates local vs remote.
-const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '';
-const REMOTE = import.meta.env.VITE_REMOTE === '1' || !!import.meta.env.VITE_API_BASE;
+// Remote mode = a Supabase client is configured (VITE_SUPABASE_URL/ANON_KEY).
+const REMOTE = !!supa;
 const KEYS = {
   settings: 'mcc.settings',
   questions: 'mcc.questions',
@@ -85,19 +85,56 @@ function ensureSeed() {
   if (localStorage.getItem(KEYS.questions) == null) write(KEYS.questions, SEED_QUESTIONS);
 }
 
-async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
-  return (await res.json()) as T;
-}
-async function apiSend<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error(`${method} ${path} -> ${res.status}`);
-  return (await res.json()) as T;
+// ---- Supabase row mappers (snake_case DB <-> camelCase app) --------------
+type SettingsRow = {
+  mode: GameSettings['mode'];
+  questions_per_game: number;
+  speed_bonus: boolean;
+  speedrun_bonus: number;
+  per_question_score_display: boolean;
+  randomize: boolean;
+  sound: boolean;
+};
+const settingsFromRow = (r: SettingsRow): GameSettings => ({
+  mode: r.mode,
+  questionsPerGame: r.questions_per_game,
+  speedBonus: r.speed_bonus,
+  speedrunBonus: r.speedrun_bonus,
+  perQuestionScoreDisplay: r.per_question_score_display,
+  randomize: r.randomize,
+  sound: r.sound,
+});
+const settingsToRow = (s: GameSettings) => ({
+  mode: s.mode,
+  questions_per_game: s.questionsPerGame,
+  speed_bonus: s.speedBonus,
+  speedrun_bonus: s.speedrunBonus,
+  per_question_score_display: s.perQuestionScoreDisplay,
+  randomize: s.randomize,
+  sound: s.sound,
+  updated_at: new Date().toISOString(),
+});
+const questionToRow = (q: Question) => ({
+  id: q.id,
+  kind: q.kind,
+  points: q.points,
+  active: q.active,
+  text: q.text ?? null,
+  explanation: q.explanation ?? null,
+  multi: !!q.multi,
+  icon: q.icon ?? null,
+  choices: q.choices ?? [],
+  prompt: q.prompt ?? null,
+  types: q.types ?? [],
+  answers: q.answers ?? [],
+});
+
+// Live leaderboard across kiosks: any change to `scores` re-notifies listeners.
+if (supa) {
+  supa
+    .channel('mcc-scores')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'scores' }, () => emitLocal('leaderboard'))
+    .subscribe();
 }
 
 // ======================================================================
@@ -108,13 +145,18 @@ export const store = {
 
   // --- settings ---
   async getSettings(): Promise<GameSettings> {
-    if (REMOTE) return apiGet<GameSettings>('/api/settings');
+    if (supa) {
+      const { data, error } = await supa.from('settings').select('*').eq('id', 1).single();
+      if (error) throw error;
+      return { ...DEFAULT_SETTINGS, ...settingsFromRow(data as SettingsRow) };
+    }
     ensureSeed();
     return { ...DEFAULT_SETTINGS, ...read<GameSettings>(KEYS.settings, DEFAULT_SETTINGS) };
   },
   async saveSettings(s: GameSettings): Promise<void> {
-    if (REMOTE) {
-      await apiSend('PUT', '/api/admin/settings', s);
+    if (supa) {
+      const { error } = await supa.from('settings').update(settingsToRow(s)).eq('id', 1);
+      if (error) throw error;
     } else {
       write(KEYS.settings, s);
     }
@@ -123,7 +165,11 @@ export const store = {
 
   // --- questions ---
   async getAllQuestions(): Promise<Question[]> {
-    if (REMOTE) return apiGet<Question[]>('/api/questions');
+    if (supa) {
+      const { data, error } = await supa.from('questions').select('*').order('created_at');
+      if (error) throw error;
+      return (data ?? []) as Question[];
+    }
     ensureSeed();
     return read<Question[]>(KEYS.questions, SEED_QUESTIONS);
   },
@@ -133,16 +179,18 @@ export const store = {
     return all.filter((q) => q.active);
   },
   async saveQuestion(q: Question): Promise<void> {
-    if (REMOTE) {
-      await apiSend('PUT', `/api/questions`, q);
-      // Enforce a single active match question server-side too.
-      if (q.kind === 'match' && q.active) await apiSend('POST', '/api/admin/exclusive-match', { id: q.id });
+    if (supa) {
+      const { error } = await supa.from('questions').upsert(questionToRow(q));
+      if (error) throw error;
+      // Only one match question may be active at a time (Mix & Match = 1 question).
+      if (q.kind === 'match' && q.active) {
+        await supa.from('questions').update({ active: false }).eq('kind', 'match').neq('id', q.id);
+      }
     } else {
       const all = read<Question[]>(KEYS.questions, SEED_QUESTIONS);
       const idx = all.findIndex((x) => x.id === q.id);
       if (idx >= 0) all[idx] = q;
       else all.push(q);
-      // Only one match question may be active at a time (Mix & Match = 1 question).
       if (q.kind === 'match' && q.active) {
         for (const x of all) if (x.kind === 'match' && x.id !== q.id) x.active = false;
       }
@@ -151,8 +199,9 @@ export const store = {
     emit('questions');
   },
   async deleteQuestion(id: string): Promise<void> {
-    if (REMOTE) {
-      await apiSend('DELETE', `/api/questions?id=${encodeURIComponent(id)}`);
+    if (supa) {
+      const { error } = await supa.from('questions').delete().eq('id', id);
+      if (error) throw error;
     } else {
       const all = read<Question[]>(KEYS.questions, SEED_QUESTIONS).filter((q) => q.id !== id);
       write(KEYS.questions, all);
@@ -163,10 +212,21 @@ export const store = {
   // --- scores / leaderboard ---
   async submitScore(score: Omit<Score, 'id' | 'createdAt'>): Promise<Score> {
     const full: Score = { ...score, id: 's' + Date.now() + Math.random().toString(36).slice(2, 6), createdAt: Date.now() };
-    if (REMOTE) {
-      const saved = await apiSend<Score>('POST', '/api/scores', full);
+    if (supa) {
+      const { data, error } = await supa
+        .from('scores')
+        .insert({
+          name: score.name,
+          total: score.total,
+          perfect_speedrun: score.perfectSpeedrun,
+          panel_id: score.panelId,
+          breakdown: score.breakdown,
+        })
+        .select('id')
+        .single();
+      if (error) throw error;
       emit('leaderboard');
-      return saved;
+      return { ...full, id: (data as { id: string }).id };
     }
     const scores = read<Score[]>(KEYS.scores, []);
     scores.push(full);
@@ -175,7 +235,16 @@ export const store = {
     return full;
   },
   async getLeaderboard(limit = 100): Promise<LeaderboardRow[]> {
-    if (REMOTE) return apiGet<LeaderboardRow[]>(`/api/leaderboard?limit=${limit}`);
+    if (supa) {
+      const { data, error } = await supa
+        .from('scores')
+        .select('id,name,total')
+        .order('total', { ascending: false })
+        .order('created_at', { ascending: true })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []).map((r, i) => ({ id: r.id as string, rank: i + 1, name: r.name as string, total: r.total as number }));
+    }
     const scores = read<Score[]>(KEYS.scores, []);
     return scores
       .slice()
@@ -184,8 +253,9 @@ export const store = {
       .map((s, i) => ({ id: s.id, rank: i + 1, name: s.name, total: s.total }));
   },
   async resetLeaderboard(): Promise<void> {
-    if (REMOTE) {
-      await apiSend('POST', '/api/admin/reset-leaderboard');
+    if (supa) {
+      const { error } = await supa.from('scores').delete().not('id', 'is', null);
+      if (error) throw error;
     } else {
       write(KEYS.scores, []);
     }
@@ -194,8 +264,8 @@ export const store = {
 
   // --- panels heartbeat (for "K panels online") ---
   heartbeat() {
-    if (REMOTE) {
-      void apiSend('POST', '/api/panels', { panelId: PANEL_ID }).catch(() => {});
+    if (supa) {
+      void supa.from('panels').upsert({ panel_id: PANEL_ID, last_seen: new Date().toISOString() }).then(() => {});
       return;
     }
     const panels = read<Record<string, number>>(KEYS.panels, {});
@@ -204,7 +274,11 @@ export const store = {
     emit('panels');
   },
   async getOnlinePanels(): Promise<number> {
-    if (REMOTE) return apiGet<{ count: number }>('/api/panels').then((r) => r.count);
+    if (supa) {
+      const cutoff = new Date(Date.now() - 15_000).toISOString();
+      const { count } = await supa.from('panels').select('*', { count: 'exact', head: true }).gt('last_seen', cutoff);
+      return count ?? 0;
+    }
     const panels = read<Record<string, number>>(KEYS.panels, {});
     const cutoff = Date.now() - 15_000;
     return Object.values(panels).filter((t) => t > cutoff).length;
