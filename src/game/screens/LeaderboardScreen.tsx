@@ -8,11 +8,11 @@ import type { LeaderboardRow } from '../../lib/types';
 // measured bar centers (% of width) so digits sit dead-centre at any size.
 // left→right visual order is ranks 4,2,1,3,5.
 const POS: Record<number, { left: string; nameTop: number; digitTop: number }> = {
-  1: { left: '49.9%', nameTop: -64, digitTop: 60 },
-  2: { left: '31.2%', nameTop: 76, digitTop: 196 },
-  3: { left: '68.2%', nameTop: 139, digitTop: 259 },
-  4: { left: '15%', nameTop: 212, digitTop: 330 },
-  5: { left: '84.6%', nameTop: 249, digitTop: 369 },
+  1: { left: '49.9%', nameTop: -108, digitTop: 60 },
+  2: { left: '31.2%', nameTop: 30, digitTop: 196 },
+  3: { left: '68.2%', nameTop: 93, digitTop: 259 },
+  4: { left: '15%', nameTop: 166, digitTop: 330 },
+  5: { left: '84.6%', nameTop: 203, digitTop: 369 },
 };
 
 // Placeholder leaders (design sample names) fill empty podium slots so a fresh
@@ -82,27 +82,15 @@ export function LeaderboardScreen({
         <img src={asset('colorbar.png')} className="lb-colorbar" alt="" aria-hidden />
         {podium.map((r) => {
           const pos = POS[r.rank];
-          const mine = !r.placeholder && r.id === myRow?.id;
           return (
             <div key={r.id}>
-              <div
-                className={
-                  'lb-name' + (mine ? ' lb-name--me' : '') + (r.placeholder ? ' lb-name--ph' : '')
-                }
-                style={{ left: pos.left, top: pos.nameTop }}
-              >
+              <div className="lb-name" style={{ left: pos.left, top: pos.nameTop }}>
                 {r.name}
               </div>
-              <div
-                className={'lb-podium-score' + (r.placeholder ? ' lb-podium-score--ph' : '')}
-                style={{ left: pos.left, top: pos.nameTop + 48 }}
-              >
+              <div className="lb-podium-score" style={{ left: pos.left, top: pos.nameTop + 46 }}>
                 {r.score} pts
               </div>
-              <div
-                className={'lb-digit' + (r.placeholder ? ' lb-digit--ph' : '')}
-                style={{ left: pos.left, top: pos.digitTop }}
-              >
+              <div className="lb-digit" style={{ left: pos.left, top: pos.digitTop }}>
                 {r.rank}
               </div>
             </div>
