@@ -318,6 +318,19 @@
 .match__col { display: flex; flex-direction: column; justify-content: space-between; }
 .match__col--bubbles { width: 470px; }
 .match__col--icons { align-items: flex-end; }
+.icon-cell {
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.icon-label {
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1.2;
+  text-align: center;
+}
 .match__col--bubbles .bubble {
   width: 100%;
   cursor: pointer;

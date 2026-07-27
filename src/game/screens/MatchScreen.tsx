@@ -250,17 +250,21 @@ export function MatchScreen({
 
         <div className="match__col match__col--icons">
           {types.map((ty) => (
-            <button
-              key={ty.id}
-              ref={(el) => {
-                if (el) iconEls.current.set(ty.id, el);
-              }}
-              className={'icon-btn' + (selected ? ' icon-btn--armed' : '')}
-              onClick={() => onIconClick(ty.id)}
-              title={ty.label}
-            >
-              <img src={iconFile(ty.icon)} alt={ty.label} />
-            </button>
+            <div className="icon-cell" key={ty.id}>
+              <button
+                ref={(el) => {
+                  if (el) iconEls.current.set(ty.id, el);
+                }}
+                className={'icon-btn' + (selected ? ' icon-btn--armed' : '')}
+                onClick={() => onIconClick(ty.id)}
+                title={ty.label}
+              >
+                <img src={iconFile(ty.icon)} alt={ty.label} />
+              </button>
+              <span className="icon-label" style={{ color: iconColor(ty.icon) }}>
+                {ty.label}
+              </span>
+            </div>
           ))}
         </div>
       </div>
