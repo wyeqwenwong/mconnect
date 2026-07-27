@@ -66,7 +66,16 @@ export function MatchScreen({
 
   function connect(answerId: string, typeId: string) {
     sfx.tap();
-    setPairs((p) => ({ ...p, [answerId]: typeId }));
+    // One-to-one: an icon holds only one answer. Linking here bumps off any
+    // other answer already connected to this icon.
+    setPairs((p) => {
+      const next: Record<string, string> = {};
+      for (const [aId, tId] of Object.entries(p)) {
+        if (tId !== typeId) next[aId] = tId;
+      }
+      next[answerId] = typeId;
+      return next;
+    });
     setSelected(null);
   }
   function clearPair(answerId: string) {

@@ -117,6 +117,7 @@ const MATCH: Question[] = [
 
       types: [types.au, types.cr, types.bu, types.sh],
       answers: [
+        // Audience has two possible answers — the game shows one at random per round.
         { id: `a${++aid}`, text: '“My ads reach the same people again and again”', typeId: types.au.id },
         { id: `a${++aid}`, text: '“I want to expand into new markets”', typeId: types.au.id },
         { id: `a${++aid}`, text: '“My video ads feel stale”', typeId: types.cr.id },

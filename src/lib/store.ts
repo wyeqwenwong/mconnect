@@ -25,7 +25,7 @@ const KEYS = {
   seedVersion: 'mcc.seedVersion',
 };
 // Bump when the seed/question shape changes so stale local pools re-seed.
-const SEED_VERSION = '3-single-match';
+const SEED_VERSION = '5-one-random-per-icon';
 
 export const PANEL_ID = getPanelId();
 function getPanelId(): string {
@@ -294,11 +294,31 @@ function shuffle<T>(arr: T[]): T[] {
   }
   return a;
 }
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/**
+ * Match play is one-to-one on screen: each icon shows exactly ONE answer. The
+ * pool may store several answers per icon — we pick one at random per round —
+ * plus any irrelevant decoys (which match no icon and should be left unlinked).
+ */
+function drawMatchAnswers(q: Question): NonNullable<Question['answers']> {
+  const answers = q.answers ?? [];
+  const chosen = (q.types ?? [])
+    .map((t) => {
+      const pool = answers.filter((a) => a.typeId === t.id);
+      return pool.length ? pick(pool) : null;
+    })
+    .filter((a): a is NonNullable<typeof a> => a !== null);
+  const decoys = answers.filter((a) => a.typeId === null);
+  return [...chosen, ...decoys];
+}
 
 /**
  * Build the question set for one game: pull latest settings + active pool,
- * keep only questions of the active MODE, draw N (random if enabled), and
- * shuffle answer order (quiz) / icon + answer arrangement (match) when
+ * keep only questions of the active MODE, draw N (random if enabled). Match
+ * questions always show one random answer per icon; ordering is shuffled when
  * randomization is on. Called at game start so admin edits propagate.
  */
 export async function drawGame(): Promise<{ settings: GameSettings; questions: Question[] }> {
@@ -309,10 +329,16 @@ export async function drawGame(): Promise<{ settings: GameSettings; questions: Q
   const n = Math.min(want, ofMode.length);
   const drawn = (settings.randomize ? shuffle(ofMode) : ofMode).slice(0, n);
   const questions = drawn.map((q) => {
-    if (!settings.randomize) return q;
-    if (q.kind === 'quiz') return { ...q, choices: shuffle(q.choices ?? []) };
-    // match: randomize both the icon column and the answer-bubble column
-    return { ...q, types: shuffle(q.types ?? []), answers: shuffle(q.answers ?? []) };
+    if (q.kind === 'quiz') {
+      return settings.randomize ? { ...q, choices: shuffle(q.choices ?? []) } : q;
+    }
+    // match: one random answer per icon (+ decoys), then shuffle both columns
+    const answers = drawMatchAnswers(q);
+    return {
+      ...q,
+      types: settings.randomize ? shuffle(q.types ?? []) : q.types,
+      answers: settings.randomize ? shuffle(answers) : answers,
+    };
   });
   return { settings, questions };
 }

@@ -287,7 +287,10 @@ function MatchEditor({ q, setQ }: { q: Question; setQ: React.Dispatch<React.SetS
       </div>
 
       {/* Answers → type (multiple answers may share a type) */}
-      <div className="field__label choices-label">Answers — each maps to the type it matches</div>
+      <div className="field__label choices-label">
+        Answers — each maps to the type it matches. You can add several answers to
+        the same icon; the game shows one at random per round.
+      </div>
       <div className="choices-edit">
         {relevant.map((a) => (
           <div className="choice-edit" key={a.id}>
