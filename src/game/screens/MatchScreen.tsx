@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { asset, iconColor, iconFile } from '../../lib/assets';
-import { Dot } from '../components/Decor';
 import { scoreMatch } from '../../lib/scoring';
 import { sfx } from '../../lib/sound';
 import { TIME_PER_QUESTION_MS, type GameSettings, type Question, type QuestionResult } from '../../lib/types';
@@ -166,7 +165,6 @@ export function MatchScreen({
   return (
     <div className="screen match">
       <img src={asset('bg3.png')} className="bg" alt="" aria-hidden />
-      <Dot style={{ bottom: 150, right: 90, width: 170 }} />
 
       <header className="c-head">
         <img src={asset('logo.png')} className="c-logo" alt="Meta" />

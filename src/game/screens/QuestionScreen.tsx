@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { asset } from '../../lib/assets';
-import { Dot } from '../components/Decor';
 import { scoreQuiz } from '../../lib/scoring';
 import { sfx } from '../../lib/sound';
 import { TIME_PER_QUESTION_MS, type GameSettings, type Question, type QuestionResult } from '../../lib/types';
@@ -86,7 +85,6 @@ export function QuestionScreen({
   return (
     <div className="screen quiz">
       <img src={asset('bg3.png')} className="bg" alt="" aria-hidden />
-      <Dot style={{ bottom: 150, right: 90, width: 170 }} />
 
       <header className="c-head">
         <img src={asset('logo.png')} className="c-logo" alt="Meta" />
