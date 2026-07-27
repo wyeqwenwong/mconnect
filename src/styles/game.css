@@ -485,6 +485,15 @@
 .lb-name--me { text-decoration: underline; }
 /* Placeholder leaders — visibly present but softer than real players. */
 .lb-name--ph { opacity: 0.6; }
+.lb-podium-score {
+  position: absolute;
+  transform: translateX(-50%);
+  font-weight: 700;
+  font-size: 30px;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+.lb-podium-score--ph { opacity: 0.55; }
 .lb-digit {
   position: absolute;
   transform: translateX(-50%);

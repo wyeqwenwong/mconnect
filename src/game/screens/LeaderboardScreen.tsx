@@ -4,21 +4,22 @@ import { store, subscribe } from '../../lib/store';
 import { sfx } from '../../lib/sound';
 import type { LeaderboardRow } from '../../lib/types';
 
-// Podium positions inside the 1372px-tall colorbar (ref 3a Top 5).
+// Podium positions inside the colorbar (ref 3a Top 5). `left` values are the
+// measured bar centers (% of width) so digits sit dead-centre at any size.
 // left→right visual order is ranks 4,2,1,3,5.
 const POS: Record<number, { left: string; nameTop: number; digitTop: number }> = {
-  1: { left: '50%', nameTop: -64, digitTop: 60 },
-  2: { left: '31%', nameTop: 76, digitTop: 196 },
-  3: { left: '69%', nameTop: 139, digitTop: 259 },
-  4: { left: '13%', nameTop: 212, digitTop: 330 },
-  5: { left: '87%', nameTop: 249, digitTop: 369 },
+  1: { left: '49.9%', nameTop: -64, digitTop: 60 },
+  2: { left: '31.2%', nameTop: 76, digitTop: 196 },
+  3: { left: '68.2%', nameTop: 139, digitTop: 259 },
+  4: { left: '15%', nameTop: 212, digitTop: 330 },
+  5: { left: '84.6%', nameTop: 249, digitTop: 369 },
 };
 
 // Placeholder leaders (design sample names) fill empty podium slots so a fresh
 // board still shows a full Top 5. Real players always rank above them.
 const FILLER_NAMES = ['Mikayla', 'Ashely', 'Bod', 'Fay', 'Olivia'];
 
-type PodiumRow = { id: string; rank: number; name: string; placeholder: boolean };
+type PodiumRow = { id: string; rank: number; name: string; placeholder: boolean; score: number };
 
 // Screen 4 — Top 5 leaderboard (ref 3a). leaderboard-bg + colorbar podium.
 export function LeaderboardScreen({
@@ -55,11 +56,20 @@ export function LeaderboardScreen({
   const outsideTop5 = myRow && myRow.rank > 5;
 
   // Fill any empty podium slots with placeholder leaders (real players first).
+  // Placeholder scores decay from the last real score so the board stays
+  // believable and monotonic top→bottom.
   const podium: PodiumRow[] = [];
+  let prevScore: number | null = null;
   for (let rank = 1; rank <= 5; rank++) {
     const real = top5[rank - 1];
-    if (real) podium.push({ id: real.id, rank, name: real.name, placeholder: false });
-    else podium.push({ id: `ph-${rank}`, rank, name: FILLER_NAMES[rank - 1], placeholder: true });
+    if (real) {
+      podium.push({ id: real.id, rank, name: real.name, placeholder: false, score: real.total });
+      prevScore = real.total;
+    } else {
+      const score = Math.max(0, Math.round((prevScore ?? 500) * 0.85));
+      podium.push({ id: `ph-${rank}`, rank, name: FILLER_NAMES[rank - 1], placeholder: true, score });
+      prevScore = score;
+    }
   }
 
   return (
@@ -82,6 +92,12 @@ export function LeaderboardScreen({
                 style={{ left: pos.left, top: pos.nameTop }}
               >
                 {r.name}
+              </div>
+              <div
+                className={'lb-podium-score' + (r.placeholder ? ' lb-podium-score--ph' : '')}
+                style={{ left: pos.left, top: pos.nameTop + 48 }}
+              >
+                {r.score} pts
               </div>
               <div
                 className={'lb-digit' + (r.placeholder ? ' lb-digit--ph' : '')}
