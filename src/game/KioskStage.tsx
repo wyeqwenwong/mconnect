@@ -13,10 +13,26 @@ export function KioskStage({ children }: { children: ReactNode }) {
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
-    const fit = () => setScale(Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H));
+    const fit = () => {
+      const vw = window.visualViewport?.width ?? window.innerWidth;
+      const vh = window.visualViewport?.height ?? window.innerHeight;
+      setScale(Math.min(vw / DESIGN_W, vh / DESIGN_H));
+    };
     fit();
+    // Cover every way the display size can change on a kiosk/TV:
+    // window resize, orientation change, and a ResizeObserver on the root
+    // (fires even when a 'resize' event doesn't, e.g. embedded displays).
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    window.visualViewport?.addEventListener('resize', fit);
+    const ro = new ResizeObserver(fit);
+    ro.observe(document.documentElement);
+    return () => {
+      window.removeEventListener('resize', fit);
+      window.removeEventListener('orientationchange', fit);
+      window.visualViewport?.removeEventListener('resize', fit);
+      ro.disconnect();
+    };
   }, []);
 
   return (

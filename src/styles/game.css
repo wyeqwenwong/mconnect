@@ -315,7 +315,8 @@
   overflow: visible;
   z-index: 3;
 }
-.match__col { display: flex; flex-direction: column; justify-content: space-between; }
+/* Center the stacks with a fixed gap so few items don't spread apart. */
+.match__col { display: flex; flex-direction: column; justify-content: center; gap: 40px; }
 .match__col--bubbles { width: 470px; }
 .match__col--icons { align-items: flex-end; }
 .icon-cell {
