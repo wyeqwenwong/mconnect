@@ -9,7 +9,7 @@ import { FeedbackScreen } from './screens/FeedbackScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
 import { drawGame, store } from '../lib/store';
 import { isPerfectSpeedrun, totalScore } from '../lib/scoring';
-import { setSoundEnabled } from '../lib/sound';
+import { setSoundEnabled, startMusic, sfx } from '../lib/sound';
 import type { GameSettings, Question, QuestionResult } from '../lib/types';
 
 type Phase = 'entry' | 'question' | 'feedback' | 'leaderboard';
@@ -73,6 +73,8 @@ export function App() {
     // Pull latest settings + pool at game start (admin changes propagate here).
     const game = await drawGame();
     setSoundEnabled(game.settings.sound);
+    sfx.start();
+    startMusic(); // gentle background bed, loops through the game (respects sound setting)
     setPlayer(name);
     setSettings(game.settings);
     setQuestions(game.questions);

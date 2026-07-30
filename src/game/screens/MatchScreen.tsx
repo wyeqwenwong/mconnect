@@ -65,7 +65,7 @@ export function MatchScreen({
   }
 
   function connect(answerId: string, typeId: string) {
-    sfx.tap();
+    sfx.select();
     // One-to-one: an icon holds only one answer. Linking here bumps off any
     // other answer already connected to this icon.
     setPairs((p) => {
