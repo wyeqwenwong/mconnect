@@ -29,10 +29,18 @@ export function App() {
   const [ready, setReady] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
 
-  // Each screen gets its own looping music theme (home / game / result). Audio
-  // can only start after a user gesture, so wait for the first interaction.
+  // Warm the audio engine on mount: create the AudioContext + instantiate the
+  // track elements so they buffer and can start instantly.
   useEffect(() => {
-    if (!audioReady) return;
+    unlockAudio();
+  }, []);
+
+  // Each screen gets its own looping music theme (home / game / result). We try
+  // to start it immediately — in the Electron kiosk autoplay is allowed, so the
+  // attract music plays on launch with no interaction. On the web, browsers
+  // block autoplay until a gesture; the blocked play() is retried when the
+  // first tap flips audioReady, so it starts on first touch there.
+  useEffect(() => {
     const t = phase === 'entry' ? 'home' : phase === 'leaderboard' ? 'result' : 'game';
     playTheme(t);
   }, [phase, audioReady]);
