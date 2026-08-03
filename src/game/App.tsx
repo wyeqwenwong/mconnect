@@ -9,7 +9,7 @@ import { FeedbackScreen } from './screens/FeedbackScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
 import { drawGame, store } from '../lib/store';
 import { isPerfectSpeedrun, totalScore } from '../lib/scoring';
-import { setSoundEnabled, startMusic, sfx } from '../lib/sound';
+import { setSoundEnabled, playTheme, unlockAudio, sfx } from '../lib/sound';
 import type { GameSettings, Question, QuestionResult } from '../lib/types';
 
 type Phase = 'entry' | 'question' | 'feedback' | 'leaderboard';
@@ -27,6 +27,15 @@ export function App() {
   const [finalTotal, setFinalTotal] = useState(0);
   const [finalPerfect, setFinalPerfect] = useState(false);
   const [ready, setReady] = useState(false);
+  const [audioReady, setAudioReady] = useState(false);
+
+  // Each screen gets its own looping music theme (home / game / result). Audio
+  // can only start after a user gesture, so wait for the first interaction.
+  useEffect(() => {
+    if (!audioReady) return;
+    const t = phase === 'entry' ? 'home' : phase === 'leaderboard' ? 'result' : 'game';
+    playTheme(t);
+  }, [phase, audioReady]);
 
   // Preload art so screen transitions are smooth; show a splash until the
   // entry-critical assets are decoded, then warm the rest in the background.
@@ -74,7 +83,6 @@ export function App() {
     const game = await drawGame();
     setSoundEnabled(game.settings.sound);
     sfx.start();
-    startMusic(); // gentle background bed, loops through the game (respects sound setting)
     setPlayer(name);
     setSettings(game.settings);
     setQuestions(game.questions);
@@ -122,8 +130,16 @@ export function App() {
 
   const runningTotal = results.reduce((s, r) => s + r.pointsEarned, 0);
 
+  const onInteract = () => {
+    resetIdle();
+    if (!audioReady) {
+      unlockAudio();
+      setAudioReady(true);
+    }
+  };
+
   return (
-    <div onPointerDown={resetIdle}>
+    <div onPointerDown={onInteract}>
       <KioskStage>
         {!ready && <Splash />}
         {ready && phase === 'entry' && <EntryScreen onStart={startGame} />}

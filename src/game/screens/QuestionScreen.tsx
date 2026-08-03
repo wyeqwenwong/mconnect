@@ -51,9 +51,10 @@ export function QuestionScreen({
       const rem = Math.max(0, TIME_PER_QUESTION_MS - (Date.now() - startRef.current));
       setRemaining(rem);
       const sec = Math.ceil(rem / 1000);
-      if (sec <= 5 && sec > 0 && sec !== lastSec) {
+      if (sec <= 10 && sec > 0 && sec !== lastSec) {
+        if (sec === 10) sfx.warn(); // "final 10 seconds" cue
         lastSec = sec;
-        sfx.tick();
+        sfx.countdown(sec); // accelerating/rising beep as time runs out
       }
       if (rem <= 0) {
         clearInterval(iv);

@@ -105,9 +105,10 @@ export function MatchScreen({
       const rem = Math.max(0, TIME_PER_QUESTION_MS - (Date.now() - startRef.current));
       setRemaining(rem);
       const sec = Math.ceil(rem / 1000);
-      if (sec <= 5 && sec > 0 && sec !== lastSec) {
+      if (sec <= 10 && sec > 0 && sec !== lastSec) {
+        if (sec === 10) sfx.warn();
         lastSec = sec;
-        sfx.tick();
+        sfx.countdown(sec);
       }
       if (rem <= 0) {
         clearInterval(iv);
