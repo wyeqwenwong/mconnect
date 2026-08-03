@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { asset } from '../../lib/assets';
 import { scoreQuiz } from '../../lib/scoring';
-import { sfx } from '../../lib/sound';
+import { sfx, duckMusic, unduckMusic } from '../../lib/sound';
 import { TIME_PER_QUESTION_MS, type GameSettings, type Question, type QuestionResult } from '../../lib/types';
 
 const TICK_MS = 100;
@@ -36,6 +36,7 @@ export function QuestionScreen({
   function submit(ids: string[]) {
     if (doneRef.current) return;
     doneRef.current = true;
+    unduckMusic(); // restore the bed as we leave the question
     const timeTaken = Date.now() - startRef.current;
     const result = scoreQuiz(question, ids, timeTaken, settings);
     if (result.correct) sfx.correct();
@@ -52,7 +53,10 @@ export function QuestionScreen({
       setRemaining(rem);
       const sec = Math.ceil(rem / 1000);
       if (sec <= 10 && sec > 0 && sec !== lastSec) {
-        if (sec === 10) sfx.warn(); // "final 10 seconds" cue
+        if (sec === 10) {
+          sfx.warn(); // "final 10 seconds" cue
+          duckMusic(); // dip the music so the countdown is clearly audible
+        }
         lastSec = sec;
         sfx.countdown(sec); // accelerating/rising beep as time runs out
       }
@@ -64,7 +68,10 @@ export function QuestionScreen({
         }
       }
     }, TICK_MS);
-    return () => clearInterval(iv);
+    return () => {
+      clearInterval(iv);
+      unduckMusic();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question.id]);
 

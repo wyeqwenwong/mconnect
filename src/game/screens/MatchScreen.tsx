@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { asset, iconColor, iconFile } from '../../lib/assets';
 import { scoreMatch } from '../../lib/scoring';
-import { sfx } from '../../lib/sound';
+import { sfx, duckMusic, unduckMusic } from '../../lib/sound';
 import { TIME_PER_QUESTION_MS, type GameSettings, type Question, type QuestionResult } from '../../lib/types';
 
 const TICK_MS = 100;
@@ -89,6 +89,7 @@ export function MatchScreen({
   function submit(finalPairs: Record<string, string>) {
     if (doneRef.current) return;
     doneRef.current = true;
+    unduckMusic(); // restore the bed as we leave the question
     const timeTaken = Date.now() - startRef.current;
     const result = scoreMatch(question, finalPairs, timeTaken, settings);
     if (result.correct) sfx.correct();
@@ -106,7 +107,10 @@ export function MatchScreen({
       setRemaining(rem);
       const sec = Math.ceil(rem / 1000);
       if (sec <= 10 && sec > 0 && sec !== lastSec) {
-        if (sec === 10) sfx.warn();
+        if (sec === 10) {
+          sfx.warn();
+          duckMusic(); // dip the music so the countdown is clearly audible
+        }
         lastSec = sec;
         sfx.countdown(sec);
       }
@@ -118,7 +122,10 @@ export function MatchScreen({
         }
       }
     }, TICK_MS);
-    return () => clearInterval(iv);
+    return () => {
+      clearInterval(iv);
+      unduckMusic();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question.id]);
 

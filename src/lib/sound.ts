@@ -81,17 +81,19 @@ export const sfx = {
   /** One-off cue the moment the final 10 seconds begin. */
   warn() {
     if (!enabled) return;
-    [660, 880].forEach((f, i) => tone(f, i * 0.1, 0.15, 'sawtooth', 0.17));
+    [660, 990, 1320].forEach((f, i) => tone(f, i * 0.09, 0.16, 'sawtooth', 0.3));
   },
   /** Per-second countdown beep for the last 10s — rises in pitch + volume as
-   *  the clock runs down; doubles up under 3s for extra tension. */
+   *  the clock runs down; doubles up under 3s for extra tension. A bright
+   *  octave harmonic rides on top so it cuts through the ducked music bed. */
   countdown(sec: number) {
     if (!enabled) return;
     const step = 10 - Math.max(0, Math.min(10, sec));
-    const f = 600 + step * 55;
-    const g = Math.min(0.22, 0.09 + step * 0.013);
-    tone(f, 0, 0.06, 'square', g);
-    if (sec <= 3) tone(f * 1.5, 0.09, 0.05, 'square', 0.13);
+    const f = 620 + step * 60;
+    const g = Math.min(0.42, 0.22 + step * 0.026);
+    tone(f, 0, 0.1, 'square', g); // fundamental
+    tone(f * 2, 0, 0.07, 'square', g * 0.4); // octave harmonic for presence/cut
+    if (sec <= 3) tone(f * 1.5, 0.1, 0.08, 'square', g * 0.8); // urgent double under 3s
   },
 };
 
@@ -168,6 +170,7 @@ export function playTheme(name: ThemeName) {
   }
   const prev = currentTheme;
   currentTheme = name;
+  ducked = false; // a new page's bed always starts at full volume
   const next = player(name);
   if (next) {
     void next.play().catch(() => {});
@@ -178,8 +181,28 @@ export function playTheme(name: ThemeName) {
 
 export function stopMusic() {
   currentTheme = '';
+  ducked = false;
   (Object.keys(players) as string[]).forEach((k) => {
     const a = players[k];
     if (a) fade(a, 0, FADE_MS, true);
   });
+}
+
+// ---- ducking: dip the background bed so the countdown cuts through ----------
+let ducked = false;
+const DUCK_VOL = MUSIC_VOL * 0.25;
+
+/** Lower the current music bed (call when the final-seconds countdown starts). */
+export function duckMusic() {
+  ducked = true;
+  const a = currentTheme ? players[currentTheme] : undefined;
+  if (a && !a.paused) fade(a, DUCK_VOL, 220);
+}
+
+/** Restore the music bed to full volume (call when the countdown ends). */
+export function unduckMusic() {
+  if (!ducked) return;
+  ducked = false;
+  const a = currentTheme ? players[currentTheme] : undefined;
+  if (a && !a.paused) fade(a, MUSIC_VOL, 400);
 }
