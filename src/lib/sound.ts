@@ -24,9 +24,10 @@ export function setSoundEnabled(on: boolean) {
   if (!on) stopMusic();
 }
 
-/** Call from a user gesture to unlock audio on kiosk. */
+/** Call from a user gesture to unlock audio on kiosk (SFX context + music). */
 export function unlockAudio() {
   ac();
+  primeMusic();
 }
 
 // ---- one-shot SFX -------------------------------------------------------
@@ -95,165 +96,90 @@ export const sfx = {
 };
 
 // ============================================================
-//  Looping music engine (themes)
+//  Looping music engine — real produced tracks (royalty-free)
+// ------------------------------------------------------------
+//  One energetic track per page (home / game / result), crossfaded on switch.
+//  The mp3s are imported so Vite fingerprints + bundles them into the app (they
+//  ship inside the .exe's app.asar and on Vercel — nothing streams from a music
+//  service). Music by Kevin MacLeod (incompetech.com), CC BY — see CREDITS.md.
 // ============================================================
-type Chord = { pad: number[]; bass: number };
-const C: Chord = { pad: [261.63, 329.63, 392.0], bass: 130.81 };
-const G: Chord = { pad: [196.0, 246.94, 293.66], bass: 98.0 };
-const Am: Chord = { pad: [220.0, 261.63, 329.63], bass: 110.0 };
-const F: Chord = { pad: [174.61, 220.0, 261.63], bass: 87.31 };
-const Dm: Chord = { pad: [293.66, 349.23, 440.0], bass: 146.83 };
+import homeUrl from '../assets/audio/home.mp3';
+import gameUrl from '../assets/audio/game.mp3';
+import resultUrl from '../assets/audio/result.mp3';
 
-type Theme = {
-  barSec: number;
-  prog: Chord[];
-  padType: OscillatorType;
-  arpType: OscillatorType;
-  padGain: number;
-  bassGain: number;
-  arpGain: number;
-  arpDiv: number; // arpeggio notes per bar
-  kickBeats: number[]; // beat indices (of 4) with a kick
-  drumGain: number;
-};
+const TRACKS: Record<string, string> = { home: homeUrl, game: gameUrl, result: resultUrl };
+export type ThemeName = keyof typeof TRACKS;
 
-const THEMES: Record<string, Theme> = {
-  // welcoming, mid-tempo
-  home: { barSec: 1.5, prog: [C, G, Am, F], padType: 'triangle', arpType: 'triangle', padGain: 0.06, bassGain: 0.11, arpGain: 0.06, arpDiv: 8, kickBeats: [0, 2], drumGain: 0.2 },
-  // driving, fast, energetic (during play)
-  game: { barSec: 1.0, prog: [Am, F, C, G], padType: 'sawtooth', arpType: 'square', padGain: 0.05, bassGain: 0.13, arpGain: 0.07, arpDiv: 16, kickBeats: [0, 1, 2, 3], drumGain: 0.26 },
-  // triumphant, celebratory (results)
-  result: { barSec: 1.35, prog: [C, G, Am, F, Dm, F, G, G], padType: 'sawtooth', arpType: 'sawtooth', padGain: 0.07, bassGain: 0.11, arpGain: 0.07, arpDiv: 8, kickBeats: [0, 2], drumGain: 0.22 },
-};
+const MUSIC_VOL = 0.62; // loud enough for a booth, leaves headroom for SFX
+const FADE_MS = 600;
 
-const MUSIC_MASTER = 1.0;
-let musicGain: GainNode | null = null;
-let noiseBuf: AudioBuffer | null = null;
-let musicPlaying = false;
+const players: Partial<Record<string, HTMLAudioElement>> = {};
 let currentTheme = '';
-let theme: Theme = THEMES.home;
-let musicTimer: number | undefined;
-let nextBarTime = 0;
-let barIndex = 0;
+const fadeTimers: Partial<Record<string, number>> = {};
 
-function ensureBus(c: AudioContext): GainNode {
-  if (!musicGain) {
-    musicGain = c.createGain();
-    musicGain.gain.value = 0.0001;
-    // Limiter so the layered notes + drums never clip at the louder master.
-    const comp = c.createDynamicsCompressor();
-    comp.threshold.value = -10;
-    comp.knee.value = 8;
-    comp.ratio.value = 12;
-    comp.attack.value = 0.003;
-    comp.release.value = 0.12;
-    musicGain.connect(comp).connect(c.destination);
+function player(name: string): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null;
+  let a = players[name];
+  if (!a) {
+    a = new Audio(TRACKS[name]);
+    a.loop = true;
+    a.preload = 'auto';
+    a.volume = 0;
+    players[name] = a;
   }
-  return musicGain;
+  return a;
 }
 
-function noise(c: AudioContext): AudioBuffer {
-  if (!noiseBuf) {
-    noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * 0.2), c.sampleRate);
-    const d = noiseBuf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+function fade(a: HTMLAudioElement, target: number, ms: number, pauseAtEnd = false) {
+  const key = a.src;
+  if (fadeTimers[key]) window.clearInterval(fadeTimers[key]);
+  const from = a.volume;
+  const steps = Math.max(1, Math.round(ms / 40));
+  let i = 0;
+  fadeTimers[key] = window.setInterval(() => {
+    i++;
+    const v = from + (target - from) * (i / steps);
+    a.volume = Math.max(0, Math.min(1, v));
+    if (i >= steps) {
+      window.clearInterval(fadeTimers[key]);
+      fadeTimers[key] = undefined;
+      if (pauseAtEnd && target === 0) a.pause();
+    }
+  }, 40);
+}
+
+/** Instantiate the track elements (start buffering) on the first user gesture.
+ *  Playback itself is driven by playTheme(); the gesture grants sticky user
+ *  activation so those play() calls are allowed on the web build. (In the
+ *  Electron kiosk autoplay is allowed outright — see electron/main.cjs.) We do
+ *  NOT play/pause here — that would race with the playTheme() the app fires for
+ *  the current page and could silence it. */
+function primeMusic() {
+  (Object.keys(TRACKS) as string[]).forEach((name) => player(name));
+}
+
+/** Switch the looping bed to a page theme, crossfading from the current one. */
+export function playTheme(name: ThemeName) {
+  if (typeof window === 'undefined' || !enabled) return;
+  if (currentTheme === name) {
+    const cur = player(name);
+    if (cur && cur.paused) void cur.play().catch(() => {});
+    return;
   }
-  return noiseBuf;
-}
-
-function mNote(c: AudioContext, freq: number, start: number, dur: number, type: OscillatorType, peak: number) {
-  const osc = c.createOscillator();
-  const g = c.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, start);
-  g.gain.setValueAtTime(0.0001, start);
-  g.gain.exponentialRampToValueAtTime(peak, start + Math.min(0.06, dur * 0.3));
-  g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-  osc.connect(g).connect(musicGain!);
-  osc.start(start);
-  osc.stop(start + dur + 0.05);
-}
-
-function kick(c: AudioContext, t: number, gain: number) {
-  const osc = c.createOscillator();
-  const g = c.createGain();
-  osc.frequency.setValueAtTime(120, t);
-  osc.frequency.exponentialRampToValueAtTime(45, t + 0.11);
-  g.gain.setValueAtTime(gain, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
-  osc.connect(g).connect(musicGain!);
-  osc.start(t);
-  osc.stop(t + 0.15);
-}
-
-function hihat(c: AudioContext, t: number, gain: number) {
-  const src = c.createBufferSource();
-  src.buffer = noise(c);
-  const hp = c.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = 6500;
-  const g = c.createGain();
-  g.gain.setValueAtTime(gain, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
-  src.connect(hp).connect(g).connect(musicGain!);
-  src.start(t);
-  src.stop(t + 0.05);
-}
-
-function scheduleBar(c: AudioContext, t: number, th: Theme, chord: Chord) {
-  mNote(c, chord.bass, t, th.barSec * 0.98, 'sine', th.bassGain);
-  chord.pad.forEach((f) => mNote(c, f, t, th.barSec * 0.98, th.padType, th.padGain));
-  const sub = th.barSec / th.arpDiv;
-  const pat = [0, 1, 2, 1, 0, 2, 1, 2];
-  for (let i = 0; i < th.arpDiv; i++) {
-    const f = chord.pad[pat[i % pat.length] % chord.pad.length] * 2;
-    mNote(c, f, t + i * sub, sub * 0.9, th.arpType, th.arpGain);
-  }
-  const beat = th.barSec / 4;
-  th.kickBeats.forEach((b) => kick(c, t + b * beat, th.drumGain));
-  for (let e = 0; e < 8; e++) hihat(c, t + e * (th.barSec / 8), th.drumGain * 0.35);
-}
-
-function pump() {
-  if (!musicPlaying) return;
-  const c = ac();
-  if (!c) return;
-  // small lookahead so a theme change takes effect within ~1 bar
-  while (nextBarTime < c.currentTime + theme.barSec * 1.25) {
-    scheduleBar(c, nextBarTime, theme, theme.prog[barIndex % theme.prog.length]);
-    nextBarTime += theme.barSec;
-    barIndex++;
-  }
-  musicTimer = window.setTimeout(pump, theme.barSec * 380);
-}
-
-function fadeMaster(c: AudioContext, target: number, dur: number) {
-  const g = musicGain!.gain;
-  g.cancelScheduledValues(c.currentTime);
-  g.setValueAtTime(Math.max(g.value, 0.0001), c.currentTime);
-  g.exponentialRampToValueAtTime(Math.max(target, 0.0001), c.currentTime + dur);
-}
-
-/** Switch the looping bed to a theme ('home' | 'game' | 'result'). */
-export function playTheme(name: keyof typeof THEMES) {
-  const c = ac();
-  if (!c || !enabled) return;
-  if (currentTheme === name && musicPlaying) return;
-  ensureBus(c);
+  const prev = currentTheme;
   currentTheme = name;
-  theme = THEMES[name];
-  barIndex = 0; // restart this theme's progression
-  if (!musicPlaying) {
-    musicPlaying = true;
-    nextBarTime = c.currentTime + 0.12;
-    fadeMaster(c, MUSIC_MASTER, 0.4);
-    pump();
+  const next = player(name);
+  if (next) {
+    void next.play().catch(() => {});
+    fade(next, MUSIC_VOL, FADE_MS);
   }
+  if (prev && players[prev]) fade(players[prev]!, 0, FADE_MS, true);
 }
 
 export function stopMusic() {
-  musicPlaying = false;
   currentTheme = '';
-  if (musicTimer) window.clearTimeout(musicTimer);
-  if (musicGain && ctx) fadeMaster(ctx, 0.0001, 0.4);
+  (Object.keys(players) as string[]).forEach((k) => {
+    const a = players[k];
+    if (a) fade(a, 0, FADE_MS, true);
+  });
 }

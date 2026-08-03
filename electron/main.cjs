@@ -39,6 +39,8 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      // Kiosk: let the looping background music start without a click gesture.
+      autoplayPolicy: 'no-user-gesture-required',
     },
   });
 
