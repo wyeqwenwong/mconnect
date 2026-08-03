@@ -4,15 +4,15 @@ The background music bundled with this app (`src/assets/audio/`) is by
 **Kevin MacLeod** (incompetech.com), licensed under
 **Creative Commons: By Attribution 4.0** (https://creativecommons.org/licenses/by/4.0/).
 
-| Page / screen | Track          | Source                                   |
-| ------------- | -------------- | ---------------------------------------- |
-| Home / entry  | *Pixelland*    | https://incompetech.com                  |
-| During game   | *Blippy Trance*| https://incompetech.com                  |
-| Results       | *Exhilarate*   | https://incompetech.com                  |
+| Page / screen | Track              | Source                              |
+| ------------- | ------------------ | ----------------------------------- |
+| Home / entry  | *Hyperfun*         | https://incompetech.com             |
+| During game   | *Itty Bitty 8 Bit* | https://incompetech.com             |
+| Results       | *Funkorama*        | https://incompetech.com             |
 
 Required attribution string:
 
-> Music: "Pixelland", "Blippy Trance", "Exhilarate" — Kevin MacLeod (incompetech.com)
+> Music: "Hyperfun", "Itty Bitty 8 Bit", "Funkorama" — Kevin MacLeod (incompetech.com)
 > Licensed under Creative Commons: By Attribution 4.0 — http://creativecommons.org/licenses/by/4.0/
 
 **For public event use:** the CC BY license requires this credit to be shown
