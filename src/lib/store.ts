@@ -13,7 +13,7 @@
 // ============================================================
 import { DEFAULT_SETTINGS, SEED_QUESTIONS } from './seed';
 import { supa } from './supabase';
-import type { GameSettings, LeaderboardRow, Question, Score } from './types';
+import type { GameSettings, LeaderboardRow, Question, QuestionResult, Score } from './types';
 
 // Remote mode = a Supabase client is configured (VITE_SUPABASE_URL/ANON_KEY).
 const REMOTE = !!supa;
@@ -233,6 +233,29 @@ export const store = {
     write(KEYS.scores, scores);
     emit('leaderboard');
     return full;
+  },
+  /** Full result rows (all columns incl. per-question breakdown) for export. */
+  async getAllResults(limit = 5000): Promise<Score[]> {
+    if (supa) {
+      const { data, error } = await supa
+        .from('scores')
+        .select('id,name,total,perfect_speedrun,panel_id,breakdown,created_at')
+        .order('created_at', { ascending: true })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id as string,
+        name: r.name as string,
+        total: r.total as number,
+        perfectSpeedrun: !!r.perfect_speedrun,
+        panelId: (r.panel_id as string) ?? '',
+        breakdown: (r.breakdown ?? []) as QuestionResult[],
+        createdAt: new Date(r.created_at as string).getTime(),
+      }));
+    }
+    return read<Score[]>(KEYS.scores, [])
+      .slice()
+      .sort((a, b) => a.createdAt - b.createdAt);
   },
   async getLeaderboard(limit = 100): Promise<LeaderboardRow[]> {
     if (supa) {

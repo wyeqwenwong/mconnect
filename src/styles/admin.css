@@ -219,6 +219,17 @@ body { background: var(--canvas); }
 .lbv__rank.rank-3 { color: var(--coral); }
 .lbv__score { font-weight: 800; }
 
+.lbv__toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+.lbv__toolbar-label { color: var(--muted); font-size: 14px; font-weight: 600; margin-right: 2px; }
+.btn-export {
+  border: none; background: var(--meta-blue); color: #fff; font-weight: 700; font-size: 14px;
+  padding: 9px 16px; border-radius: 10px; cursor: pointer; font-family: inherit;
+}
+.btn-export:hover { filter: brightness(1.07); }
+.btn-export:disabled { opacity: .6; cursor: default; }
+.btn-export--ghost { background: var(--blue-tint); color: var(--meta-blue); }
+.lbv__error { color: var(--coral); font-weight: 600; font-size: 14px; margin: -8px 0 14px; }
+
 /* Panels view */
 .panels { max-width: 620px; }
 .panels-card { margin-top: 18px; }
