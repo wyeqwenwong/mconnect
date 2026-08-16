@@ -76,7 +76,7 @@ export function LeaderboardScreen({
     <div className="screen leaderboard">
       <img src={asset('leaderboard-bg.png')} className="bg" alt="" aria-hidden />
       <img src={asset('logo-white.png')} className="lb-logo" alt="Meta" />
-      <div className="lb-top5">TOP 5{perfect && <span className="lb-perfect">Perfect speedrun +50</span>}</div>
+      <div className="lb-top5">TOP 5{perfect && <span className="lb-perfect">Perfect run! 🎉</span>}</div>
 
       <div className="lb-podium">
         <img src={asset('colorbar.png')} className="lb-colorbar" alt="" aria-hidden />

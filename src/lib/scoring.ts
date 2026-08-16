@@ -5,6 +5,9 @@
 // ============================================================
 import {
   FULL_POINTS_WINDOW_MS,
+  MATCH_POINTS_PER_CORRECT,
+  SPEED_BONUS_POINTS,
+  SPEED_BONUS_UNIT_MS,
   TIME_PER_QUESTION_MS,
   type GameSettings,
   type Question,
@@ -65,10 +68,12 @@ export function scoreQuiz(
 /**
  * Score a match question.
  * `pairs` maps answerId -> the typeId the player connected it to (absent = left
- * unconnected). Scored per correct match: an answer is correct when it is
- * connected to its own typeId. Irrelevant answers (typeId null) are correct when
- * left unconnected — connecting them anywhere is simply wrong (no penalty).
- * The question's base points are split evenly across all answers.
+ * unconnected). An answer is correct when connected to its own typeId; an
+ * irrelevant answer (typeId null) is correct when left unconnected.
+ *
+ * Points = 20 per correct match, plus a speed bonus of 5 points for every whole
+ * 5 seconds still on the clock at submit (only when at least one match is right,
+ * and only while the speed-bonus setting is on).
  */
 export function scoreMatch(
   question: Question,
@@ -92,6 +97,13 @@ export function scoreMatch(
   const fraction = total === 0 ? 0 : correctCount / total;
   const fullyCorrect = correctCount === total && total > 0;
 
+  const base = correctCount * MATCH_POINTS_PER_CORRECT;
+  const remainingMs = Math.max(0, TIME_PER_QUESTION_MS - timeTakenMs);
+  const speedBonus =
+    settings.speedBonus && correctCount > 0
+      ? Math.floor(remainingMs / SPEED_BONUS_UNIT_MS) * SPEED_BONUS_POINTS
+      : 0;
+
   return {
     questionId: question.id,
     selectedChoiceIds: [],
@@ -101,7 +113,7 @@ export function scoreMatch(
     correctCount,
     totalCount: total,
     timeTakenMs,
-    pointsEarned: Math.round(applySpeedTier(question.points * fraction, timeTakenMs, settings)),
+    pointsEarned: base + speedBonus,
   };
 }
 

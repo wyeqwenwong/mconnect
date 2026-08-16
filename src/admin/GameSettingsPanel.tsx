@@ -89,7 +89,7 @@ export function GameSettingsPanel() {
         <div className="set-row">
           <div className="set-label">
             Speed bonus
-            <span className="set-hint">Full pts &lt;20s · 75% &lt;30s · +{s.speedrunBonus} speedrun</span>
+            <span className="set-hint">Match: 20 pts/correct · +5 per 5s left · Quiz: full &lt;20s, 75% &lt;30s</span>
           </div>
           <Toggle on={s.speedBonus} onChange={(v) => set({ speedBonus: v })} />
         </div>

@@ -102,3 +102,9 @@ export interface LeaderboardRow {
 
 export const TIME_PER_QUESTION_MS = 30_000;
 export const FULL_POINTS_WINDOW_MS = 20_000;
+
+// Mix & Match scoring: a flat award per correct match, plus a time bonus of
+// SPEED_BONUS_POINTS for every whole SPEED_BONUS_UNIT_MS still on the clock.
+export const MATCH_POINTS_PER_CORRECT = 20;
+export const SPEED_BONUS_POINTS = 5;
+export const SPEED_BONUS_UNIT_MS = 5_000;

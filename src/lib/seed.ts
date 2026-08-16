@@ -9,14 +9,14 @@ export const DEFAULT_SETTINGS: GameSettings = {
   mode: 'match',
   questionsPerGame: 5,
   speedBonus: true,
-  speedrunBonus: 50,
+  speedrunBonus: 0, // match speed reward is now +5 per 5s left (see scoreMatch)
   perQuestionScoreDisplay: true,
   randomize: true,
   sound: true,
 };
 
 const STRATEGIES = {
-  placements: { icon: 'placements', label: 'A+ Placements' },
+  placements: { icon: 'placements', label: 'A+ Placement' },
   audience: { icon: 'audience', label: 'A+ Audience' },
   creative: { icon: 'creative', label: 'A+ Creative' },
   shopping: { icon: 'shopping', label: 'A+ Shopping' },
