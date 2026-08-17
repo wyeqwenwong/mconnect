@@ -25,7 +25,6 @@ export function App() {
   const [results, setResults] = useState<QuestionResult[]>([]);
   const [lastResult, setLastResult] = useState<QuestionResult | null>(null);
   const [finalTotal, setFinalTotal] = useState(0);
-  const [finalPerfect, setFinalPerfect] = useState(false);
   const [ready, setReady] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
 
@@ -123,9 +122,10 @@ export function App() {
   async function finish(currentResults: QuestionResult[]) {
     if (!settings) return;
     const total = totalScore(currentResults, settings);
+    // Still recorded on each result (used in the admin export), just no longer
+    // shown as a badge on the results screen.
     const perfect = settings.speedBonus && isPerfectSpeedrun(currentResults);
     setFinalTotal(total);
-    setFinalPerfect(perfect);
     await store.submitScore({
       name: player,
       total,
@@ -191,7 +191,6 @@ export function App() {
           <LeaderboardScreen
             playerName={player}
             finalTotal={finalTotal}
-            perfect={finalPerfect}
             onPlayAgain={backToEntry}
           />
         )}

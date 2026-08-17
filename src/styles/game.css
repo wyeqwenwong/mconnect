@@ -455,16 +455,6 @@
   letter-spacing: 4px;
   text-align: center;
 }
-.lb-perfect {
-  display: block;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 8px 24px;
-  border-radius: var(--r-pill);
-  margin-top: 12px;
-}
 .lb-podium {
   position: absolute;
   bottom: 0;
