@@ -4,7 +4,6 @@ import { Splash } from './components/Splash';
 import { preloadCritical, preloadRest } from '../lib/preload';
 import { EntryScreen } from './screens/EntryScreen';
 import { QuestionScreen } from './screens/QuestionScreen';
-import { MatchScreen } from './screens/MatchScreen';
 import { FeedbackScreen } from './screens/FeedbackScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
 import { drawGame, store } from '../lib/store';
@@ -153,27 +152,15 @@ export function App() {
         {ready && phase === 'entry' && <EntryScreen onStart={startGame} />}
 
         {phase === 'question' && settings && questions[index] && (
-          questions[index].kind === 'match' ? (
-            <MatchScreen
-              key={questions[index].id + index}
-              question={questions[index]}
-              index={index}
-              total={questions.length}
-              playerName={player}
-              settings={settings}
-              onAnswered={handleAnswered}
-            />
-          ) : (
-            <QuestionScreen
-              key={questions[index].id + index}
-              question={questions[index]}
-              index={index}
-              total={questions.length}
-              playerName={player}
-              settings={settings}
-              onAnswered={handleAnswered}
-            />
-          )
+          <QuestionScreen
+            key={questions[index].id + index}
+            question={questions[index]}
+            index={index}
+            total={questions.length}
+            playerName={player}
+            settings={settings}
+            onAnswered={handleAnswered}
+          />
         )}
 
         {phase === 'feedback' && settings && lastResult && questions[index] && (
@@ -181,7 +168,8 @@ export function App() {
             question={questions[index]}
             result={lastResult}
             runningTotal={runningTotal}
-            showPoints={settings.perQuestionScoreDisplay}
+            index={index}
+            total={questions.length}
             playerName={player}
             onDone={() => advance(results)}
           />

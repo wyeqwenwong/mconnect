@@ -4,26 +4,12 @@
 // the background while the player is on the entry screen.
 import { asset } from './assets';
 
-const CRITICAL = ['bg1.png', 'logo.png', 'wordmark.png', 'name-box.png', 'start.png', 'dot.png', 'pacman.png'];
+const CRITICAL = ['bg-v2.png', 'meta-logo.png', 'heading.png', 'subhead.png', 'start-v2.png', 'leaf1.png', 'leaf2.png', 'leaf3.png'];
 
-// The Top 5 podium art is heavy and, if it loads late, the rank numbers briefly
-// sit on the bare background (looking off-centre). Load it right after critical
-// and before it's ever needed.
-const IMPORTANT = ['leaderboard-bg.png', 'colorbar.png', 'logo-white.png'];
+// Load the results art right after critical so it's warm before it's needed.
+const IMPORTANT = ['correct.png', 'medal1.png', 'medal2.png', 'medal3.png', 'medal4.png'];
 
-const REST = [
-  'bg2.png',
-  'bg3.png',
-  'next.png',
-  'tick-green.png',
-  'tick-pink.png',
-  'tick-purple.png',
-  'icon-audience.png',
-  'icon-budget.png',
-  'icon-creative.png',
-  'icon-placements.png',
-  'icon-shopping.png',
-];
+const REST = ['play-again.png', 'share-score.png'];
 
 function load(name: string): Promise<void> {
   return new Promise((resolve) => {

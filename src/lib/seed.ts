@@ -1,132 +1,92 @@
 // ============================================================
-// Default settings + launch question pool (quiz + match).
-// Content is placeholder per handoff §8 — the event owner replaces it via the
-// admin console. Pool holds both kinds; settings.mode picks which is played.
+// Default settings + question pool — "The Agentic Challenge" (5 questions).
+// A questionnaire (quiz mode). One question (Q3) is multi-select.
+// Event owner can still edit everything via the admin console.
 // ============================================================
-import type { GameSettings, Question } from './types';
+import type { Choice, GameSettings, Question } from './types';
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  mode: 'match',
+  mode: 'quiz',
   questionsPerGame: 5,
-  speedBonus: true,
-  speedrunBonus: 0, // match speed reward is now +5 per 5s left (see scoreMatch)
+  speedBonus: false, // flat 10 pts per correct answer (matches the design)
+  speedrunBonus: 0,
   perQuestionScoreDisplay: true,
   randomize: true,
   sound: true,
 };
 
-const STRATEGIES = {
-  placements: { icon: 'placements', label: 'A+ Placement' },
-  audience: { icon: 'audience', label: 'A+ Audience' },
-  creative: { icon: 'creative', label: 'A+ Creative' },
-  shopping: { icon: 'shopping', label: 'A+ Shopping' },
-  budget: { icon: 'budget', label: 'A+ Budget' },
-} as const;
-
-type StratKey = keyof typeof STRATEGIES;
-
+const POINTS = 10;
 let cid = 0;
-function choice(key: StratKey, correct: boolean) {
-  const s = STRATEGIES[key];
-  return { id: `c${++cid}`, label: s.label, emoji: '', correct };
-}
+const opt = (label: string, correct = false): Choice => ({ id: `c${++cid}`, label, emoji: '', correct });
 
-/** Single-select quiz question with one correct strategy among the five. */
-function single(
-  id: string,
-  text: string,
-  correctKey: StratKey,
-  explanation: string,
-  points = 100,
-): Question {
-  const keys: StratKey[] = ['placements', 'audience', 'creative', 'shopping', 'budget'];
-  return {
-    id,
-    kind: 'quiz',
-    text,
-    explanation,
-    points,
-    multi: false,
-    active: true,
-    choices: keys.map((k) => choice(k, k === correctKey)),
-  };
-}
-
-// -------- quiz pool --------
 const QUIZ: Question[] = [
-  single('q1', 'My CPM is too high.', 'placements', 'A+ Placements — optimize where ads appear to lower CPM.'),
-  single('q2', 'I’m not reaching new customers.', 'audience', 'A+ Audience — refine targeting to expand reach.'),
-  single('q3', 'I’m spending too much time on creative.', 'creative', 'A+ Creative — streamline and strengthen creative.'),
-  single('q4', 'I need better ROAS on my catalog.', 'shopping', 'A+ Shopping — leverage catalog and shopping features.'),
-  single('q5', 'My budget isn’t distributed efficiently.', 'budget', 'A+ Budget — optimize allocation and bidding.', 150),
-  single('q6', 'People see my ad but the message doesn’t land.', 'creative', 'A+ Creative — stronger creative improves resonance.'),
-  single('q7', 'I keep hitting the same saturated audience.', 'audience', 'A+ Audience — broaden and refine targeting.'),
-  single('q8', 'My ads show in the wrong formats and placements.', 'placements', 'A+ Placements — optimize placements across Meta.'),
   {
-    id: 'q9',
+    id: 'aq1',
     kind: 'quiz',
-    text: 'Launching a new e-commerce store — which A+ Strategies should I lead with?',
-    explanation: 'Shopping powers the catalog; Creative earns the click on cold traffic.',
-    points: 120,
-    multi: true,
     active: true,
-    choices: [
-      choice('placements', false),
-      choice('audience', false),
-      choice('creative', true),
-      choice('shopping', true),
-      choice('budget', false),
-    ],
+    points: POINTS,
+    multi: false,
+    text: 'What percentage of Malaysians prefer messaging as their way to reach a business?',
+    choices: [opt('45%'), opt('62%'), opt('80%', true), opt('95%')],
+    explanation:
+      '80.4% — five points above the global average. Your customers have already chosen the channel.',
   },
-  single('q10', 'My video ads get views but few clicks.', 'creative', 'A+ Creative — a sharper hook and CTA lifts CTR.'),
+  {
+    id: 'aq2',
+    kind: 'quiz',
+    active: true,
+    points: POINTS,
+    multi: false,
+    text: 'How much higher is the click-through rate on WhatsApp compared to email?',
+    choices: [opt('1.5X'), opt('2X'), opt('4.5X', true), opt('10X')],
+    explanation:
+      '4.5X higher. Air France used WhatsApp across marketing and boarding passes. (Results self-reported; individual results will differ.)',
+  },
+  {
+    id: 'aq3',
+    kind: 'quiz',
+    active: true,
+    points: POINTS,
+    multi: true,
+    text: 'Which of these makes a marketing message get left on read? (select all that apply)',
+    choices: [
+      opt('Long dense block of text', true),
+      opt('Excessive use of emojis', true),
+      opt('Multiple different URLs embedded in text', true),
+      opt('Multiple competing calls to action', true),
+      opt('Promotional code buried in the message', true),
+      opt('A single clear CTA button', false),
+    ],
+    explanation:
+      'All five are conversion killers. The one that works? One clear CTA button.',
+  },
+  {
+    id: 'aq4',
+    kind: 'quiz',
+    active: true,
+    points: POINTS,
+    multi: false,
+    text: 'WhatsApp truncates marketing messages after how many lines?',
+    choices: [opt('3 lines'), opt('5 lines', true), opt('10 lines'), opt('No limit')],
+    explanation:
+      "After 5 lines your message is truncated — people have to tap 'read more'. Front-load everything that matters, and bold it.",
+  },
+  {
+    id: 'aq5',
+    kind: 'quiz',
+    active: true,
+    points: POINTS,
+    multi: false,
+    text: 'Which is NOT a differentiator of the Meta Business Agent Platform?',
+    choices: [
+      opt('Cross-session memory that recognises returning customers'),
+      opt('3.5B+ daily active users across WhatsApp, Facebook and Instagram'),
+      opt('It replaces your existing CRM', true),
+      opt('ISO 27001, GDPR and CCPA compliance'),
+    ],
+    explanation:
+      "It connects to your stack — it doesn't replace it. Plus proactive re-engagement, cross-platform personalisation, and native in-thread commerce with no redirects.",
+  },
 ];
 
-// -------- match pool --------
-let tid = 0;
-let aid = 0;
-const t = (icon: StratKey) => ({ id: `t${++tid}`, icon: STRATEGIES[icon].icon, label: STRATEGIES[icon].label });
-
-const MATCH: Question[] = [
-  (() => {
-    const types = { pl: t('placements'), au: t('audience'), cr: t('creative'), sh: t('shopping'), bu: t('budget') };
-    return {
-      id: 'm1',
-      kind: 'match' as const,
-      prompt: 'Match each problem to the A+ Strategy that solves it',
-      points: 100,
-      active: true,
-      types: [types.pl, types.au, types.cr, types.sh, types.bu],
-      answers: [
-        { id: `a${++aid}`, text: '“I’m not reaching new customers”', typeId: types.au.id },
-        { id: `a${++aid}`, text: '“I’m spending too much time on creative”', typeId: types.cr.id },
-        { id: `a${++aid}`, text: '“I need better ROAS on my catalog”', typeId: types.sh.id },
-        { id: `a${++aid}`, text: '“My budget isn’t distributed efficiently”', typeId: types.bu.id },
-        { id: `a${++aid}`, text: '“My CPM is too high”', typeId: types.pl.id },
-      ],
-    };
-  })(),
-  (() => {
-    // Demonstrates multiple answers per type + an irrelevant decoy.
-    const types = { au: t('audience'), cr: t('creative'), bu: t('budget'), sh: t('shopping') };
-    return {
-      id: 'm2',
-      kind: 'match' as const,
-      prompt: 'Match each problem to the A+ Strategy that solves it',
-      points: 120,
-      active: false, // only one match question active at a time
-
-      types: [types.au, types.cr, types.bu, types.sh],
-      answers: [
-        // Audience has two possible answers — the game shows one at random per round.
-        { id: `a${++aid}`, text: '“My ads reach the same people again and again”', typeId: types.au.id },
-        { id: `a${++aid}`, text: '“I want to expand into new markets”', typeId: types.au.id },
-        { id: `a${++aid}`, text: '“My video ads feel stale”', typeId: types.cr.id },
-        { id: `a${++aid}`, text: '“My cost per purchase keeps climbing”', typeId: types.bu.id },
-        { id: `a${++aid}`, text: '“I can’t showcase my product catalog”', typeId: types.sh.id },
-        { id: `a${++aid}`, text: '“My office wifi is slow”', typeId: null }, // irrelevant decoy
-      ],
-    };
-  })(),
-];
-
-export const SEED_QUESTIONS: Question[] = [...QUIZ, ...MATCH];
+export const SEED_QUESTIONS: Question[] = QUIZ;

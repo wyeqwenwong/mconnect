@@ -12,3 +12,6 @@ tsconfig.tsbuildinfo
 # heavy design reference (not needed for deploy)
 design_handoff
 design-reference2
+
+# heavy raw asset source (resized copies live in public/assets)
+assetv2

@@ -41,6 +41,15 @@
 
   --shadow-hero: 0 24px 70px rgba(0, 0, 0, 0.08);
 
+  /* ---- "Agentic AI 2026" theme v2 (assetv2 / Kiosk_v1_2) ---- */
+  --v2-green: #25d366; /* primary: START, correct, chip, score */
+  --v2-green-dark: #17b34f;
+  --v2-ink: #1b2b33; /* headings / question text */
+  --v2-ink-soft: #55636b; /* secondary text */
+  --v2-card: #ffffff;
+  --v2-card-shadow: 0 30px 60px rgba(31, 63, 74, 0.16);
+  --v2-track: #e6ebef; /* timer ring track, input fill */
+
   --font: 'Figtree', system-ui, -apple-system, sans-serif;
 }
 

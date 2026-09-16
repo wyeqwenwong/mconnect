@@ -25,7 +25,7 @@ const KEYS = {
   seedVersion: 'mcc.seedVersion',
 };
 // Bump when the seed/question shape changes so stale local pools re-seed.
-const SEED_VERSION = '5-one-random-per-icon';
+const SEED_VERSION = '6-agentic-quiz';
 
 export const PANEL_ID = getPanelId();
 function getPanelId(): string {

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { asset } from '../../lib/assets';
-import { Blob, Dot, Pacman } from '../components/Decor';
+import { Leaves } from '../components/Leaves';
 import { OnScreenKeyboard } from '../components/OnScreenKeyboard';
 import { unlockAudio, sfx } from '../../lib/sound';
 
-// Screen 1 — Entry (ref 3a Entry). bg1 full-bleed; logo + wordmark; name box
-// with overlaid input + on-screen keyboard; START button asset.
+// Screen 1 — Entry (assetv2 Kiosk_v1_2). Pastel gradient + green leaves; Meta
+// logo; "Build for Agentic AI 2026" heading; white card with name input + START;
+// on-screen keyboard below.
 export function EntryScreen({ onStart }: { onStart: (name: string) => void }) {
   const [name, setName] = useState('');
 
@@ -18,37 +19,28 @@ export function EntryScreen({ onStart }: { onStart: (name: string) => void }) {
   };
 
   return (
-    <div className="screen entry">
-      <img src={asset('bg1.png')} className="bg" alt="" aria-hidden />
-      {/* Decor lives only above the input (y<720) or below the start button
-          (y>1580) so it never overlaps the input / keyboard / button. */}
-      <Dot style={{ top: 250, right: 40, width: 170 }} />
-      <Dot style={{ bottom: 90, left: 60, width: 170 }} />
-      <Pacman style={{ bottom: 110, right: 300, width: 92 }} />
-      <Blob color="var(--magenta)" face="•—•" rotate={-24} style={{ top: 150, right: 130, width: 110, height: 64 }} />
-      <Blob color="var(--teal)" face="• ᴗ •" rotate={-12} style={{ bottom: 230, right: 70, width: 90, height: 66, borderRadius: '55% 45% 50% 50%' }} />
+    <div className="screen v2 entry-v2">
+      <img src={asset('bg-v2.png')} className="bg" alt="" aria-hidden />
+      <Leaves />
 
-      <img src={asset('logo.png')} className="entry__logo" alt="Meta" />
-      <img src={asset('wordmark.png')} className="entry__wordmark" alt="Meta Connect & Convert" />
-      <div className="entry__subtitle">
-        Test your marketing expertise
-        <br />
-        and compete for the top score
-      </div>
+      <img src={asset('meta-logo.png')} className="entry-v2__logo" alt="Meta" />
+      <img src={asset('subhead.png')} className="entry-v2__subhead" alt="Meta Business Messaging Sessions" />
+      <img src={asset('heading.png')} className="entry-v2__heading" alt="Build for Agentic AI 2026" />
 
-      <div className="entry__namebox">
-        <img src={asset('name-box.png')} alt="" aria-hidden />
-        <div className={'entry__input' + (name ? ' has-value' : '')}>
-          {name || 'Your Name here..'}
-          <span className="entry__caret" />
+      <div className="entry-v2__card">
+        <div className="entry-v2__label">Who’s playing?</div>
+        <div className={'entry-v2__input' + (name ? ' has-value' : '')}>
+          {name || 'Name or company…'}
+          <span className="entry-v2__caret" />
         </div>
+        <button className="entry-v2__start" onClick={start} disabled={!name.trim()} aria-label="Start">
+          <img src={asset('start-v2.png')} alt="Start" />
+        </button>
       </div>
 
       <OnScreenKeyboard onChange={setName} />
 
-      <button className="entry__start" onClick={start} disabled={!name.trim()} aria-label="Start">
-        <img src={asset('start.png')} alt="Start" />
-      </button>
+      <div className="entry-v2__foot">5 questions · 30 seconds each · live leaderboard</div>
     </div>
   );
 }

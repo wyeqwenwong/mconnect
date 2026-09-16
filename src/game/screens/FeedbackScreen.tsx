@@ -1,24 +1,26 @@
 import { useEffect, useState } from 'react';
 import { asset } from '../../lib/assets';
-import { Dot, Pacman, Blob } from '../components/Decor';
+import { Leaves } from '../components/Leaves';
 import { type Question, type QuestionResult } from '../../lib/types';
 
-const AUTO_ADVANCE_MS = 4000;
+const AUTO_ADVANCE_MS = 5000;
 
-// Screen 3 — score feedback (ref 3a Score). bg2 + confetti ticks; big blue
-// +score; amber TOTAL pill (live); NEXT button. Handles quiz + match results.
+// Screen 3 — answer feedback (assetv2 Kiosk_v1_2). Green check (or cross),
+// "Correct!/Not quite", points, running total pill, and a white reveal card.
 export function FeedbackScreen({
   question,
   result,
   runningTotal,
-  showPoints,
+  index,
+  total,
   playerName,
   onDone,
 }: {
   question: Question;
   result: QuestionResult;
   runningTotal: number;
-  showPoints: boolean;
+  index: number;
+  total: number;
   playerName: string;
   onDone: () => void;
 }) {
@@ -35,65 +37,59 @@ export function FeedbackScreen({
 
   const correct = result.correct;
   const partial = !correct && result.fraction > 0;
-  const isMatch = question.kind === 'match';
+  const title = correct ? 'Correct!' : partial ? 'Almost!' : 'Not quite';
 
-  let sub: string;
-  if (isMatch) {
-    sub = correct ? 'all matched — nice one!' : `${result.correctCount ?? 0} of ${result.totalCount ?? 0} matched`;
-  } else if (correct) {
-    sub = 'points – nice one!';
-  } else if (partial) {
-    sub = `${result.correctCount ?? 0} of ${result.totalCount ?? 0} correct`;
-  } else {
-    sub = 'not quite!';
-  }
-
-  // Quiz reveal of the correct answer(s) when wrong.
   const correctChoices = (question.choices ?? []).filter((c) => c.correct);
 
   return (
-    <div className="screen feedback">
-      <img src={asset('bg2.png')} className="bg" alt="" aria-hidden />
-      <img src={asset('tick-pink.png')} className="decor" style={{ top: 400, left: 110, width: 110 }} alt="" aria-hidden />
-      <img src={asset('tick-purple.png')} className="decor" style={{ top: 280, right: 170, width: 100 }} alt="" aria-hidden />
-      <img src={asset('tick-green.png')} className="decor" style={{ top: 700, right: 120, width: 120 }} alt="" aria-hidden />
-      <Pacman style={{ top: 1200, left: 110, width: 90 }} />
-      <Dot style={{ bottom: 250, right: 110, width: 170 }} />
-      <Dot style={{ top: 1030, left: 100, width: 170 }} />
-      <Blob color="var(--pink)" face="• ‿ •" style={{ top: 1120, right: 150, width: 100, height: 76, borderRadius: '60% 40% 55% 45%', color: '#222' }} />
+    <div className="screen v2 fb-v2">
+      <img src={asset('bg-v2.png')} className="bg" alt="" aria-hidden />
+      <Leaves />
 
-      <header className="c-head c-head--full">
-        <img src={asset('logo.png')} className="c-logo" alt="Meta" />
-        <div className="c-chip">👤 {playerName}</div>
+      <header className="v2-head">
+        <div className="v2-progress">
+          {String(index + 1).padStart(2, '0')}/{String(total).padStart(2, '0')}
+        </div>
+        <img src={asset('meta-logo.png')} className="v2-logo" alt="Meta" />
+        <div className="v2-chip">
+          <svg className="v2-chip__ic" viewBox="0 0 24 24" aria-hidden>
+            <path
+              fill="#fff"
+              d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2.2c-4.2 0-8 2.1-8 5.3v.5h16v-.5c0-3.2-3.8-5.3-8-5.3Z"
+            />
+          </svg>
+          {playerName}
+        </div>
       </header>
 
-      <div className="fb-body">
-        {showPoints ? (
-          <div className={'fb-score ' + (correct ? 'txt-blue' : partial ? 'txt-amber' : 'txt-magenta')}>
-            +{result.pointsEarned}
-          </div>
+      <div className="fb2-body">
+        {correct ? (
+          <img src={asset('correct.png')} className="fb2-check" alt="Correct" />
         ) : (
-          <div className={'fb-mark ' + (correct ? 'fb-mark--ok' : 'fb-mark--no')}>{correct ? '✓' : '✕'}</div>
-        )}
-        <div className="fb-sub">{sub}</div>
-
-        {showPoints && (
-          <div className="fb-total-pill">TOTAL {runningTotal} PTS</div>
+          <div className={'fb2-cross' + (partial ? ' fb2-cross--partial' : '')}>✕</div>
         )}
 
-        {!isMatch && !correct && (
-          <div className="fb-reveal">
-            Answer: {correctChoices.map((c) => c.label).join(', ')}
-          </div>
-        )}
-        {!isMatch && correct && question.explanation && (
-          <div className="fb-reveal">{question.explanation}</div>
-        )}
+        <div className="fb2-title">{title}</div>
+        <div className="fb2-points">
+          +{result.pointsEarned} point{result.pointsEarned === 1 ? '' : 's'}
+        </div>
+        <div className="fb2-total">TOTAL {runningTotal} PTS</div>
 
-        <button className="fb-next" onClick={onDone} aria-label="Next">
-          <img src={asset('next.png')} alt="Next" />
+        <div className="fb2-card">
+          {!correct && correctChoices.length > 0 && (
+            <div className="fb2-card__answer">
+              {question.multi ? 'Answer: ' : 'Answer: '}
+              {correctChoices.map((c) => c.label).join(', ')}
+            </div>
+          )}
+          {question.explanation && <div className="fb2-card__reveal">{question.explanation}</div>}
+        </div>
+      </div>
+
+      <div className="fb2-foot">
+        <button className="fb2-next" onClick={onDone}>
+          {index + 1 >= total ? 'See results' : 'Next question'} · {Math.max(count, 0)}s
         </button>
-        <div className="fb-count">Next in {Math.max(count, 0)}…</div>
       </div>
     </div>
   );
