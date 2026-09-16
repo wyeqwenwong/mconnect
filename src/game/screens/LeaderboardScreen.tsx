@@ -22,7 +22,6 @@ export function LeaderboardScreen({
   onPlayAgain: () => void;
 }) {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
-  const [toast, setToast] = useState('');
 
   useEffect(() => {
     sfx.fanfare();
@@ -58,12 +57,6 @@ export function LeaderboardScreen({
     }
   }
 
-  const share = () => {
-    sfx.tap();
-    setToast('📸 Screenshot to share your score!');
-    setTimeout(() => setToast(''), 2600);
-  };
-
   return (
     <div className="screen v2 lb-v2">
       <img src={asset('bg-v2.png')} className="bg" alt="" aria-hidden />
@@ -91,15 +84,10 @@ export function LeaderboardScreen({
       </div>
 
       <div className="lb2-actions">
-        <button className="lb2-share" onClick={share} aria-label="Share score">
-          <img src={asset('share-score.png')} alt="Share score" />
-        </button>
         <button className="lb2-again" onClick={onPlayAgain} aria-label="Play again">
           <img src={asset('play-again.png')} alt="Play again" />
         </button>
       </div>
-
-      {toast && <div className="lb2-toast">{toast}</div>}
     </div>
   );
 }
