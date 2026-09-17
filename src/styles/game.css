@@ -376,6 +376,16 @@
   padding: 22px 56px;
   border-radius: var(--r-pill);
   box-shadow: 0 10px 24px rgba(31, 63, 74, 0.14);
+  transition: transform 0.12s ease;
+}
+.fb2-next:active { transform: scale(0.97); }
+/* Wrong/partial answers advance only on tap — make the button the hero. */
+.fb2-next--primary {
+  background: var(--v2-green);
+  color: #fff;
+  font-size: 36px;
+  padding: 26px 72px;
+  box-shadow: 0 16px 30px rgba(37, 211, 102, 0.38);
 }
 
 /* ============================================================

@@ -98,7 +98,8 @@ export function QuestionScreen({
   const secLeft = Math.ceil(remaining / 1000);
   const progress = remaining / TIME_PER_QUESTION_MS;
   const low = secLeft <= 10;
-  const ringColor = low ? '#FF4D4D' : 'var(--v2-green)';
+  const ringColor = low ? '#FF4D4D' : 'var(--v2-green)'; // ring: green → red
+  const numColor = low ? '#FF4D4D' : '#111111'; // number: black → red
 
   return (
     <div className={'screen v2 quiz-v2' + (question.multi ? ' quiz-v2--multi' : '')}>
@@ -137,7 +138,7 @@ export function QuestionScreen({
             transform="rotate(-90 110 110)"
           />
         </svg>
-        <div className="q-timer__num" style={{ color: ringColor }}>
+        <div className="q-timer__num" style={{ color: numColor }}>
           {secLeft}
         </div>
       </div>

@@ -3,7 +3,7 @@ import { asset } from '../../lib/assets';
 import { Leaves } from '../components/Leaves';
 import { type Question, type QuestionResult } from '../../lib/types';
 
-const AUTO_ADVANCE_MS = 5000;
+const CORRECT_ADVANCE_MS = 8000; // correct answers auto-advance; wrong wait for a tap
 
 // Screen 3 — answer feedback (assetv2 Kiosk_v1_2). Green check (or cross),
 // "Correct!/Not quite", points, running total pill, and a white reveal card.
@@ -24,20 +24,25 @@ export function FeedbackScreen({
   playerName: string;
   onDone: () => void;
 }) {
-  const [count, setCount] = useState(Math.round(AUTO_ADVANCE_MS / 1000));
+  const correct = result.correct;
+  const partial = !correct && result.fraction > 0;
+  const title = correct ? 'Correct!' : partial ? 'Almost!' : 'Not quite';
+
+  // Correct answers auto-advance after a delay; wrong/partial answers wait for
+  // the player to tap Next so they have time to read the reveal. (The 45s idle
+  // timeout still resets an abandoned kiosk.)
+  const autoMs = correct ? CORRECT_ADVANCE_MS : 0;
+  const [count, setCount] = useState(Math.ceil(autoMs / 1000));
 
   useEffect(() => {
+    if (!autoMs) return;
     const iv = setInterval(() => setCount((c) => c - 1), 1000);
-    const t = setTimeout(onDone, AUTO_ADVANCE_MS);
+    const t = setTimeout(onDone, autoMs);
     return () => {
       clearInterval(iv);
       clearTimeout(t);
     };
-  }, [onDone]);
-
-  const correct = result.correct;
-  const partial = !correct && result.fraction > 0;
-  const title = correct ? 'Correct!' : partial ? 'Almost!' : 'Not quite';
+  }, [onDone, autoMs]);
 
   const correctChoices = (question.choices ?? []).filter((c) => c.correct);
 
@@ -87,8 +92,9 @@ export function FeedbackScreen({
       </div>
 
       <div className="fb2-foot">
-        <button className="fb2-next" onClick={onDone}>
-          {index + 1 >= total ? 'See results' : 'Next question'} · {Math.max(count, 0)}s
+        <button className={'fb2-next' + (correct ? '' : ' fb2-next--primary')} onClick={onDone}>
+          {index + 1 >= total ? 'See results' : 'Next question'}
+          {autoMs ? ` · ${Math.max(count, 0)}s` : ' ›'}
         </button>
       </div>
     </div>
