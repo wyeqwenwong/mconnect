@@ -14,20 +14,13 @@ import {
   type QuestionResult,
 } from './types';
 
-/** Apply the speed-bonus tiers to an already-earned base amount. */
-function applySpeedTier(base: number, timeTakenMs: number, settings: GameSettings): number {
-  if (base <= 0) return 0;
-  if (!settings.speedBonus) return base; // full base points regardless of time
-  if (timeTakenMs <= FULL_POINTS_WINDOW_MS) return base; // <20s: full
-  if (timeTakenMs <= TIME_PER_QUESTION_MS) return base * 0.75; // 20-30s: 75%
-  return 0; // timed out
-}
-
 /**
  * Score a quiz question.
  * Single-select: correct = the one chosen choice is the correct one.
  * Multi-select:  proportional credit, wrong picks cancel correct picks, never
  *   below zero. "correct" is true only on a fully-correct selection.
+ * Speed bonus: a flat +SPEED_BONUS_POINTS when the answer is fully correct and
+ *   given within FULL_POINTS_WINDOW_MS (and the speed-bonus setting is on).
  */
 export function scoreQuiz(
   question: Question,
@@ -53,6 +46,12 @@ export function scoreQuiz(
     fraction = fullyCorrect ? 1 : 0;
   }
 
+  const base = Math.round(question.points * fraction);
+  const speedBonus =
+    settings.speedBonus && fullyCorrect && timeTakenMs <= FULL_POINTS_WINDOW_MS
+      ? SPEED_BONUS_POINTS
+      : 0;
+
   return {
     questionId: question.id,
     selectedChoiceIds,
@@ -61,7 +60,7 @@ export function scoreQuiz(
     correctCount: choices.filter((c) => c.correct && picked.has(c.id)).length,
     totalCount: correctIds.length,
     timeTakenMs,
-    pointsEarned: Math.round(applySpeedTier(question.points * fraction, timeTakenMs, settings)),
+    pointsEarned: base + speedBonus,
   };
 }
 

@@ -143,6 +143,12 @@ export function QuestionScreen({
         </div>
       </div>
 
+      {settings.speedBonus && (
+        <div className={'q-speed-hint' + (low ? ' q-speed-hint--gone' : '')}>
+          {low ? 'Speed bonus window closed' : '⚡ Answer within 20s for a +5 bonus'}
+        </div>
+      )}
+
       <div className="q-prompt">{question.text}</div>
       {question.multi && (
         <div className="q-multi-note">Select all that apply · {correctCount} correct</div>

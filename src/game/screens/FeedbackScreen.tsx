@@ -45,6 +45,9 @@ export function FeedbackScreen({
   }, [onDone, autoMs]);
 
   const correctChoices = (question.choices ?? []).filter((c) => c.correct);
+  // A fully-correct answer's base equals question.points, so anything extra is
+  // the speed bonus.
+  const speedBonus = correct ? Math.max(0, result.pointsEarned - question.points) : 0;
 
   return (
     <div className="screen v2 fb-v2">
@@ -78,6 +81,7 @@ export function FeedbackScreen({
         <div className="fb2-points">
           +{result.pointsEarned} point{result.pointsEarned === 1 ? '' : 's'}
         </div>
+        {speedBonus > 0 && <div className="fb2-speed">⚡ includes +{speedBonus} speed bonus</div>}
         <div className="fb2-total">TOTAL {runningTotal} PTS</div>
 
         <div className="fb2-card">

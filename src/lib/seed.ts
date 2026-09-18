@@ -8,7 +8,7 @@ import type { Choice, GameSettings, Question } from './types';
 export const DEFAULT_SETTINGS: GameSettings = {
   mode: 'quiz',
   questionsPerGame: 5,
-  speedBonus: false, // flat 10 pts per correct answer (matches the design)
+  speedBonus: true, // +5 per question answered correctly within 20s (10 base + 5)
   speedrunBonus: 0,
   perQuestionScoreDisplay: true,
   randomize: true,

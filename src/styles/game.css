@@ -230,6 +230,15 @@
   font-size: 30px;
   color: var(--v2-green-dark);
 }
+.q-speed-hint {
+  text-align: center;
+  margin-top: 16px;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--v2-green-dark);
+}
+.q-speed-hint--gone { color: #d24; opacity: 0.75; }
+.quiz-v2--multi .q-speed-hint { margin-top: 10px; font-size: 24px; }
 
 .q-options {
   display: flex;
@@ -346,6 +355,7 @@
 @keyframes pop { from { transform: scale(0.3); opacity: 0; } }
 .fb2-title { font-weight: 900; font-size: 76px; color: var(--v2-ink); margin-top: 24px; }
 .fb2-points { font-weight: 800; font-size: 40px; color: var(--v2-green-dark); margin-top: 4px; }
+.fb2-speed { font-weight: 700; font-size: 30px; color: #f5a623; margin-top: 6px; }
 .fb2-total {
   margin-top: 30px;
   background: var(--v2-green);
